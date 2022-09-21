@@ -1,1 +1,1 @@
-# bs2_ipp
+# BS2 - Moana Aulagner, Siegfried Dubois
