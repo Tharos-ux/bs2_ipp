@@ -100,11 +100,17 @@ def read_interaction_file_list(filename: str) -> list[Tuple[str, str]]:
 
 
 def read_interaction_file_mat(filename: str) -> Tuple[np.ndarray, list[str]]:
-    # TODO
-    interactions: dict[str,list[str]] = read_interaction_file_dict(filename)
+    """Reads from an interaction file a set of interactions
 
+    Args:
+        filename (str): path to file
+
+    Returns:
+        Tuple[np.ndarray,list[str]]: distance matrix and ordered list of nodes
+    """
+    interactions: dict[str,list[str]] = read_interaction_file_dict(filename)
     edges:list[str] = sorted(list(set([key for key in chain(*interactions.values(),interactions.keys())])))
-    matrix:np.ndarray = np.zeros(shape=(len(edges), len(edges)))
+    matrix:np.ndarray = np.zeros(dtype=int,shape=(len(edges), len(edges)))
     for key, values in interactions.items():
         for value in values:
             matrix[edges.index(key)][edges.index(value)] = 1
