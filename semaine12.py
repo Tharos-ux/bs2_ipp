@@ -71,8 +71,11 @@ def read_interaction_file_dict(filename: str) -> dict[str, list[str]]:
     with open(filename, 'r') as handler:
         next(handler)
         for line in handler:
-            interactions[line.split(' ')[0]] = [line.split(' ')[1].replace('\n', '')] if line.split(' ')[
-                0] not in interactions else interactions[line.split(' ')[0]]+[line.split(' ')[1].replace('\n', '')]
+            key,value = line.replace('\n', '').split(' ')
+            if value in interactions and key in interactions[value]:
+                pass
+            else:
+                interactions[key] = [value] if key not in interactions else interactions[key]+[value]
     return interactions
 
 
@@ -85,10 +88,13 @@ def read_interaction_file_list(filename: str) -> list[Tuple[str, str]]:
     Returns:
         list[str]: interactions for each node of graph
     """
+    interactions: list[Tuple[str, str]] = []
     with open(filename, 'r') as handler:
         next(handler)
-        interactions: list[(str, str)] = [
-            (line.split(' ')[0], line.split(' ')[1].replace('\n', '')) for line in handler]
+        for line in handler:
+            key, value = line.replace('\n', '').split(' ')
+            if not (value, key) in interactions:
+                interactions+=[(key,value)]
     return interactions
 
 
