@@ -1,6 +1,7 @@
 
 from typing import Callable, Tuple
 import numpy as np
+from itertools import chain
 
 
 def is_interaction_file(filename: str) -> bool:
@@ -100,7 +101,15 @@ def read_interaction_file_list(filename: str) -> list[Tuple[str, str]]:
 
 def read_interaction_file_mat(filename: str) -> Tuple[np.ndarray, list[str]]:
     # TODO
-    return ("test", "test")
+    interactions: dict[str,list[str]] = read_interaction_file_dict(filename)
+
+    edges:list[str] = sorted(list(set([key for key in chain(*interactions.values(),interactions.keys())])))
+    matrix:np.ndarray = np.zeros(shape=(len(edges), len(edges)))
+    for key, values in interactions.items():
+        for value in values:
+            matrix[edges.index(key)][edges.index(value)] = 1
+            matrix[edges.index(value)][edges.index(key)] = 1
+    return (np.asarray(matrix), edges)
 
 
 @check_interaction_file
