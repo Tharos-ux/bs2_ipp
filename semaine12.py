@@ -21,7 +21,7 @@ def is_interaction_file(filename: str) -> bool:
         with open(filename, 'r') as handler:
             first_line: int = int(handler.readline().replace('\n', ''))
             for i, line in enumerate(handler):
-                if len(line.replace('\n', '').split(' ')) != 2:
+                if len(line.replace('\n', '').split()) != 2:
                     raise ValueError
             if i+1 != first_line:
                 raise AssertionError
@@ -72,11 +72,12 @@ def read_interaction_file_dict(filename: str) -> dict[str, list[str]]:
     with open(filename, 'r') as handler:
         next(handler)
         for line in handler:
-            key,value = line.replace('\n', '').split(' ')
+            key, value = line.replace('\n', '').split(' ')
             if value in interactions and key in interactions[value]:
                 pass
             else:
-                interactions[key] = [value] if key not in interactions else interactions[key]+[value]
+                interactions[key] = [
+                    value] if key not in interactions else interactions[key]+[value]
     return interactions
 
 
@@ -95,7 +96,7 @@ def read_interaction_file_list(filename: str) -> list[Tuple[str, str]]:
         for line in handler:
             key, value = line.replace('\n', '').split(' ')
             if not (value, key) in interactions:
-                interactions+=[(key,value)]
+                interactions += [(key, value)]
     return interactions
 
 
@@ -108,9 +109,10 @@ def read_interaction_file_mat(filename: str) -> Tuple[np.ndarray, list[str]]:
     Returns:
         Tuple[np.ndarray,list[str]]: distance matrix and ordered list of nodes
     """
-    interactions: dict[str,list[str]] = read_interaction_file_dict(filename)
-    edges:list[str] = sorted(list(set([key for key in chain(*interactions.values(),interactions.keys())])))
-    matrix:np.ndarray = np.zeros(dtype=int,shape=(len(edges), len(edges)))
+    interactions: dict[str, list[str]] = read_interaction_file_dict(filename)
+    edges: list[str] = sorted(
+        list(set([key for key in chain(*interactions.values(), interactions.keys())])))
+    matrix: np.ndarray = np.zeros(dtype=int, shape=(len(edges), len(edges)))
     for key, values in interactions.items():
         for value in values:
             matrix[edges.index(key)][edges.index(value)] = 1
@@ -129,6 +131,3 @@ def read_interaction_file(filename: str) -> Tuple[dict[str, list[str]], list[Tup
         Tuple[dict[str, list[str]], list[Tuple[str, str]], np.ndarray, list[str]]: interpretation of graphs
     """
     return (read_interaction_file_dict(filename), read_interaction_file_list(filename), *read_interaction_file_mat(filename))
-
-
-print(read_interaction_file('toy_example.txt'))
