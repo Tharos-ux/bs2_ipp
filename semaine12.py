@@ -2,6 +2,9 @@
 from typing import Callable, Tuple
 import numpy as np
 from itertools import chain
+from statistics import mean
+from collections import Counter
+import matplotlib as plt
 
 
 def is_interaction_file(filename: str) -> bool:
@@ -131,3 +134,47 @@ def read_interaction_file(filename: str) -> Tuple[dict[str, list[str]], list[Tup
         Tuple[dict[str, list[str]], list[Tuple[str, str]], np.ndarray, list[str]]: interpretation of graphs
     """
     return (read_interaction_file_dict(filename), read_interaction_file_list(filename), *read_interaction_file_mat(filename))
+
+
+def count_vertices(filename: str) -> int:
+    return len(read_interaction_file_dict(filename).keys())
+
+
+def count_edges(filename: str) -> int:
+    return len(read_interaction_file_list(filename))
+
+
+def clean_interactome(filein: str, fileout: str) -> None:
+    interactions: list[Tuple[str, str]] = read_interaction_file_list(filein)
+    with open(fileout, 'w') as handler:
+        handler.write('\n'.join(
+            [len(interactions)]+[f"{key} {value}" for (key, value) in interactions]))
+
+
+def get_degree(filename: str, prot: str) -> int:
+    interactions: dict[str, list[str]] = read_interaction_file_dict(filename)
+    return len(interactions[prot]) if prot in interactions else 0
+
+
+def get_max_degree(filename: str) -> Tuple[str, int]:
+    mapping: dict[str, int] = {key: len(value)
+                               for key, value in read_interaction_file_dict(filename).items()}
+    return (list(mapping.keys()).index(max(list(mapping.values()))), max(list(mapping.values())))
+
+
+def get_ave_degree(filename: str) -> int:
+    return int(mean(list({key: len(value)
+                          for key, value in read_interaction_file_dict(filename).items()}.values())))
+
+
+def count_degree(filename: str, deg: int) -> list[str]:
+    return [k for k, v in {key: len(value) for key, value in read_interaction_file_dict(filename).items()}.items() if v == deg]
+
+
+def histogram_degree(filename: str, dmin: int, dmax: int) -> None:
+    return Counter(deg for deg in [len(value) for value in read_interaction_file_dict(filename).values()] if deg >= dmin and deg <= dmax)
+
+
+def output_histogram(data: Counter) -> None:
+    plt.bar(data.keys(), data.values())
+    plt.show()
