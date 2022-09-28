@@ -117,9 +117,10 @@ def read_interaction_file_mat(filename: str) -> Tuple[np.ndarray, list[str]]:
         list(set([key for key in chain(*interactions.values(), interactions.keys())])))
     matrix: np.ndarray = np.zeros(dtype=int, shape=(len(edges), len(edges)))
     for key, values in interactions.items():
+        key_edge:int = edges.index(key)
         for value in values:
-            matrix[edges.index(key)][edges.index(value)] = 1
-            matrix[edges.index(value)][edges.index(key)] = 1
+            matrix[key_edge][edges.index(value)] = 1
+            matrix[edges.index(value)][key_edge] = 1
     return (np.asarray(matrix), edges)
 
 
@@ -247,3 +248,10 @@ def histogram_degree(filename: str, dmin: int, dmax: int) -> None:
     """
     output_histogram(Counter(deg for deg in [len(value) for value in read_interaction_file_dict(
         filename).values()] if deg >= dmin and deg <= dmax))
+
+
+# Stratégies d'optimisation :
+# > Mettre les fonctions de chargement de fichier en cache
+# > Ouvrir le fichier le fichier qu'une seule fois
+# > Utiliser des générateurs pour ne calculer qu'au dernier moment
+# > Rassembler les fonctions en une seule
