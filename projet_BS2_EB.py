@@ -75,16 +75,14 @@ def is_interaction_file(file):
         if i != size_file-1:
             return False
     return True
-    
-#print(is_interaction_file("toy_example.txt"))
-        
-            
+
+# print(is_interaction_file("toy_example.txt"))
 
 
 # if not isinstance(size_file, int):
 #    return False
 
-## Chapitre 2
+# Chapitre 2
 
 def count_vertices(file):
     interaction = read_interaction_file_dict(file)
@@ -92,21 +90,23 @@ def count_vertices(file):
     value = list(interaction.values())
     return len(sorted(set(key + list(chain(*value)))))
 
-#print(count_vertices("toy_example.txt"))
-    
+# print(count_vertices("toy_example.txt"))
+
+
 def count_edges(file):
     interaction = read_interaction_file_dict(file)
     value = list(interaction.values())
     return len(list(chain(*value)))
 
-#print(count_edges("toy_example.txt"))
+# print(count_edges("toy_example.txt"))
 
 #import csv
 #import pandas as pd
 
-def clean_interactome(filein):                
+
+def clean_interactome(filein):
     list_interactions = list()
-    with open(filein,"r") as f:
+    with open(filein, "r") as f:
         next(f)
         for line in f:
             line_interaction = line.split()
@@ -116,6 +116,7 @@ def clean_interactome(filein):
 
     return list_interactions, len(list_interactions)
 
+
 def write_clean_clean_interactome(filein, fileout):
     list_interactions, nb_interactions = clean_interactome(filein)
     with open(fileout, "w") as f:
@@ -124,7 +125,8 @@ def write_clean_clean_interactome(filein, fileout):
             f.write(f"{str(item[0])} {str(item[1])}\n")
 
 # print(write_clean_clean_interactome("toy_example.txt", "toy_clean.txt"))
-    
+
+
 def get_degree(file, prot):
     interactions = read_interaction_file_dict(file)
     return len(interactions[prot])
@@ -143,6 +145,7 @@ def get_max_degree(file):
 
 # print(get_max_degree("toy_example.txt"))
 
+
 def get_ave_degree(file):
     interactions = read_interaction_file_dict(file)
     somme = 0
@@ -151,11 +154,12 @@ def get_ave_degree(file):
         somme += len(value)
     return somme/len_graph
 
-#print(get_ave_degree("toy_example.txt"))
+# print(get_ave_degree("toy_example.txt"))
+
 
 def count_degree(file, deg):
     interactions = read_interaction_file_dict(file)
-    i = 0 
+    i = 0
     for value in interactions.values():
         if len(value) == deg:
             i += 1
@@ -163,35 +167,22 @@ def count_degree(file, deg):
 
 #print(count_degree("toy_example.txt", 2))
 
+
 def histogram_degree(file, dmin, dmax):
     interactions = read_interaction_file_dict(file)
     dico = dict()
     for value in interactions.values():
-        len_value = len(value) 
+        len_value = len(value)
         if len_value <= dmax and len_value >= dmin:
-            dico[len_value] = dico.setdefault(len_value,0) + 1
-    for item in range(dmin,dmax+1):
+            dico[len_value] = dico.setdefault(len_value, 0) + 1
+    for item in range(dmin, dmax+1):
         if item in dico.keys():
             print(str(item) + "*"*dico[item])
+
 
 histogram_degree("Human_HighQuality.txt", 25, 50)
 
 
-                
-        
-    
-        
-    
-    
-        
-    
-    
-    
-                    
-
-    
-
-    
 '''
 
                     
