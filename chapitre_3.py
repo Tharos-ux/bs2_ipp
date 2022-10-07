@@ -6,20 +6,86 @@ import numpy as np
 from itertools import chain
 from os import system
 
+from typing import Callable, Tuple
+from statistics import mean
+from collections import Counter
+import matplotlib as plt
+
+
+def is_interaction_file(filename: str) -> bool:
+    """Checks if file is correct
+
+    Raises:
+        ValueError: happens if any line is badly formatted
+        AssertionError: happens if number of lines is not correct
+        TypeError: happens if first line is not a int
+        FileNotFoundError: happens if file does not exists
+
+    Returns:
+        bool: status of file
+    """
+    status: bool = False
+    try:
+        with open(filename, 'r') as handler:
+            first_line: int = int(handler.readline().replace('\n', ''))
+            for i, line in enumerate(handler):
+                if len(line.replace('\n', '').split()) != 2:
+                    raise ValueError
+            if i+1 != first_line:
+                raise AssertionError
+        status = True
+    except AssertionError:
+        raise AssertionError(
+            f"File {filename} has incorrect number of lines. Described : {i}, awaited {first_line}")
+    except TypeError:
+        raise TypeError(f"File {filename} has incorrect first line.")
+    except ValueError:
+        raise ValueError(f"File contains error on line {i}.")
+    except FileNotFoundError:
+        raise FileNotFoundError(f"File {filename} does not exists.")
+    finally:
+        return status
+
+
+def check_interaction_file(f: Callable) -> Callable:
+    """Decorator to check if file is correctly formatted
+
+    Args:
+        f (Callable): function to call
+
+    Returns:
+        Callable: call to function to call
+    """
+    def wrapper(*args: list, **kwargs: dict) -> object:
+        """Inner part of decorator, responsible for checks
+
+        Returns:
+            object: the object returned by the Callable
+        """
+        if is_interaction_file(args[1]):
+            return f(*args, **kwargs)
+    return wrapper
+
 
 class Interactome:
 
-    def __init__(self, file, fileout=clean_int_graph.txt):
-        """ Initialisation of the attributes """
-        if self.is_interaction_file(self, file):
-            self.write_clean_interactome(self, file, fileout)
-            self.file = fileout
-            self.int_list, self.int_dict = self.read_interaction_file(
-                self.file)
-            value = list(self.int_dict.values())
-            self.proteins = sorted(set(key + list(chain(*value))))
-        else:
-            raise ValueError("File is not an interaction file")
+    @check_interaction_file
+    def __init__(self, file: str, fileout="clean_int_graph.txt"):
+        """Creates a list and a dictionary from the interactome file as well as the list of ordered proteins.
+
+        Parameters
+        ----------
+        file : str
+            a path to an interactome file in txt format
+        fileout : str, optional
+            output path for a cleaned interactome txt file
+        """
+        self.write_clean_interactome(self, file, fileout)
+        self.file = fileout
+        self.int_list, self.int_dict = self.read_interaction_file(
+            self.file)
+        key, value = self.int_dict.items()
+        self.proteins = sorted(set(key + list(chain(*list(value)))))
 
     @property
     def int_list(self):
@@ -57,23 +123,20 @@ class Interactome:
             raise ValueError("Expecting a set")
         self.__proteins = new_proteins
 
-    def is_interaction_file(self, file) -> Boolean:
-        with open(file, "r") as f:
-            try:
-                size_file = int(f.readline())
-            except ValueError:
-                return False
-            if size_file == 0:
-                return False
-            for i, line in enumerate(f):
-                res = line.split(" ")
-                if len(res) != 2:
-                    return False
-            if i != size_file-1:
-                return False
-        return True
+    def clean_interactome(self, filein: str) -> Tuple[list[Tuple[str, str]], int]:
+        """Cleans data from file by removing redundant interactions.
+         Count the number of interactions
 
-    def clean_interactome(self, filein) -> list:
+        Parameters
+        ----------
+        filein : str
+            The interactome file to clean.
+
+        Returns
+        -------
+        list, int
+            List of non redundant interactions, number of interactions.
+        """
         list_interactions = list()
         with open(filein, "r") as f:
             next(f)
@@ -84,14 +147,33 @@ class Interactome:
                         list_interactions.append(line_interaction)
         return list_interactions, len(list_interactions)
 
-    def write_clean_interactome(self, filein, fileout) -> None:
-        list_interactions, nb_interactions = clean_interactome(filein)
-        with open(fileout, "w") as f:
-            f.write(str(nb_interactions)+"\n")
-            for item in list_interactions:
-                f.write(f"{str(item[0])} {str(item[1])}\n")
+    def write_clean_interactome(self, filein: str, fileout: str) -> None:
+        """ Writes the cleaned data to the output file.
+        Parameters
+        ----------
+        filein : str
+            The interactome file to clean.
+        fileout : str
+            The cleaned interactome file
+        """
+        list_interactions, nb_interactions = self.clean_interactome(filein)
+        with open(fileout, 'w') as handler:
+            handler.write('\n'.join(
+                [nb_interactions]+[f"{key} {value}" for (key, value) in list_interactions]))
 
-    def read_interaction_file(self, file):
+    def read_interaction_file(self, file: str) -> Tuple[list[Tuple[str, str]], dict[str, list[str]]]:
+        """ Reads an interaction file and format the interactions in the form of a dictionary and a list.
+
+        Parameters
+        ----------
+        file : str
+            Path to the interaction file
+
+        Returns
+        -------
+        list, dict
+            The list of interactions and the dictionary of interactions
+        """
         list_interactions = list()
         dico_interactions = dict()
         with open(file, "r") as f:
@@ -102,68 +184,130 @@ class Interactome:
                 dico_interactions.setdefault(key, []).append(value)
         return list_interactions, dico_interactions
 
-    def read_interaction_file_mat(self):
-        interaction = self.int_dict
-        key = list(interaction.keys())
-        value = list(interaction.values())
+    def read_interaction_file_mat(self) -> Tuple[np.ndarray, list[str]]:
+        """Reads a dictionary of interactions and format the interactions in the form of a matrix.
+        The matrix size is equal to the number of dual interactions in the file.
+
+        Returns
+        -------
+        np.ndarray, list[str]
+            The matrix of interactions and the list of the graph's vertices.
+            The order of the vertices in the list is representative of the order in the matrix.
+        """
+        key = list(self.int_dict.keys())
+        value = list(self.int_dict.values())
         liste_sommets = sorted(set(key + list(chain(*value))))
         dim = len(liste_sommets)
-        mat = np.zeros([dim, dim], dtype=int)
-        for key2, value2 in interaction.items():
+        matrix = np.zeros([dim, dim], dtype=int)
+        for key2, value2 in self.int_dict.items():
             col = liste_sommets.index(key2)
             for item in value2:
                 ligne = liste_sommets.index(item)
-                mat[ligne][col] = 1
-                mat[col][ligne] = 1
-        return mat, liste_sommets
+                matrix[ligne][col] = 1
+                matrix[col][ligne] = 1
+        return np.asarray(matrix), liste_sommets
 
     def count_vertices(self) -> int:
-        interaction = self.int_dict
-        key = list(interaction.keys())
-        value = list(interaction.values())
+        """ Count the number of unique vertices from a dictionary,
+        including the ones that are only present in the values of the dictionary.
+
+        Returns
+        -------
+        int
+            Number of unique vertices in the graph
+        """
+        key = list(self.int_dict.keys())
+        value = list(self.int_dict.values())
         return len(sorted(set(key + list(chain(*value)))))
 
     def count_edges(self) -> int:
-        interaction = self.int_dict
-        value = list(interaction.values())
+        """ Count the number of edges from a dictionary.
+
+        Returns
+        -------
+        int
+            Number of unique edges in the graph
+        """
+        value = list(self.int_dict.values())
         return len(list(chain(*value)))
 
     def get_degree(self, prot: str) -> int:
-        interactions = self.int_dict
-        return len(interactions[prot])
+        """Count the number of interactions for a specific protein.
 
-    def get_max_degree(self):
-        interactions = self.int_dict
+        Parameters
+        ----------
+        prot : str
+            The name or ID of the protein.
+
+        Returns
+        -------
+        int
+            The number of edges linked to a specific protein if the protein exists, else 0.
+        """
+        return len(self.int_dict[prot]) if prot in self.int_dict else 0
+
+    def get_max_degree(self) -> Tuple[str, int]:
+        """Gets the protein with the highest number of interactions and the number of interactions associated.
+
+        Returns
+        -------
+        Tuple[str, int]
+            The name of the protein and the number of interactions associated.
+        """
         max_interactions = 0
-        for key, value in interactions.items():
+        for key, value in self.int_dict.items():
             len_val = len(value)
             if len_val > max_interactions:
                 max_interactions = len_val
                 return key, len_val
 
-    def get_ave_degree(self) -> float:
-        interactions = self.int_dict
-        somme = 0
-        len_graph = len(interactions.values())
-        for value in interactions.values():
-            somme += len(value)
-        return somme/len_graph
+    def get_ave_degree(self) -> int:
+        """Gives the approximate average degree
+
+        Returns
+        -------
+        int
+            The average degree of PPI interactions, rounded
+        """
+        return int(mean(list({key: len(value)
+                              for key, value in self.int_dict.items()}.values())))
 
     def count_degree(self, deg: int) -> int:
-        interactions = self.int_dict
-        i = 0
-        for value in interactions.values():
-            if len(value) == deg:
-                i += 1
-        return i
+        """Counts the number of proteins with a given degree deg
 
-    def histogram_degree(self, dmin: int, dmax: int) -> str:
-        interactions = self.int_dict
-        dico = dict()
-        for value in interactions.values():
-            len_value = len(value)
-            if len_value <= dmax and len_value >= dmin:
-                dico[len_value] = dico.setdefault(len_value, 0) + 1
-        for item in range(dmin, dmax+1):
-            if item in dico.keys():
-                print(str(item) + "*"*dico[item])
+        Parameters
+        ----------
+        deg : int
+            The given degree
+
+        Returns
+        -------
+        int
+            The number of proteins in the graph with the given degree
+        """
+        return len([k for k, v in {key: len(value) for key, value in self.int_dict.items()}.items() if v == deg])
+
+    def output_histogram(self, data: Counter) -> None:
+        """Plots histogram from counter
+
+        Parameters
+        ----------
+        data : Counter
+            Number of number of edges to a node
+        """
+        plt.bar(data.keys(), data.values())
+        plt.savefig(f"{self.file.split('.')[0]}.png")
+
+    def histogram_degree(self, dmin: int, dmax: int) -> None:
+        """Filters some proteins by degree within range
+
+        Parameters
+        ----------
+        dmin : int
+            lower boundary
+        dmax : int
+            upper boundary
+
+        """
+        self.output_histogram(Counter(deg for deg in [len(
+            value) for value in self.int_dict.values()] if deg >= dmin and deg <= dmax))
