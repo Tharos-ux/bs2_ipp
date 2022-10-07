@@ -9,7 +9,7 @@ from os import system
 from typing import Callable, Tuple
 from statistics import mean
 from collections import Counter
-import matplotlib as plt
+import matplotlib.pyplot as plt
 
 
 def is_interaction_file(filename: str) -> bool:
@@ -80,11 +80,11 @@ class Interactome:
         fileout : str, optional
             output path for a cleaned interactome txt file
         """
-        self.write_clean_interactome(self, file, fileout)
+        self.write_clean_interactome(file, fileout)
         self.file = fileout
         self.int_list, self.int_dict = self.read_interaction_file(
             self.file)
-        key, value = self.int_dict.items()
+        key, value = list(self.int_dict.keys()), list(self.int_dict.values())
         self.proteins = sorted(set(key + list(chain(*list(value)))))
 
     @property
@@ -119,8 +119,8 @@ class Interactome:
     @proteins.setter
     def proteins(self, new_proteins):
         """ Setter of the attribute proteins. """
-        if not isinstance(new_proteins, set):
-            raise ValueError("Expecting a set")
+        if not isinstance(new_proteins, list):
+            raise ValueError("Expecting a list")
         self.__proteins = new_proteins
 
     def clean_interactome(self, filein: str) -> Tuple[list[Tuple[str, str]], int]:
@@ -159,7 +159,7 @@ class Interactome:
         list_interactions, nb_interactions = self.clean_interactome(filein)
         with open(fileout, 'w') as handler:
             handler.write('\n'.join(
-                [nb_interactions]+[f"{key} {value}" for (key, value) in list_interactions]))
+                [str(nb_interactions)]+[f"{key} {value}" for (key, value) in list_interactions]))
 
     def read_interaction_file(self, file: str) -> Tuple[list[Tuple[str, str]], dict[str, list[str]]]:
         """ Reads an interaction file and format the interactions in the form of a dictionary and a list.
@@ -287,7 +287,7 @@ class Interactome:
         """
         return len([k for k, v in {key: len(value) for key, value in self.int_dict.items()}.items() if v == deg])
 
-    def output_histogram(self, data: Counter) -> None:
+    def __output_histogram(self, data: Counter) -> None:
         """Plots histogram from counter
 
         Parameters
@@ -309,5 +309,5 @@ class Interactome:
             upper boundary
 
         """
-        self.output_histogram(Counter(deg for deg in [len(
+        self.__output_histogram(Counter(deg for deg in [len(
             value) for value in self.int_dict.values()] if deg >= dmin and deg <= dmax))

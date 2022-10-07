@@ -117,7 +117,7 @@ def read_interaction_file_mat(filename: str) -> Tuple[np.ndarray, list[str]]:
         list(set([key for key in chain(*interactions.values(), interactions.keys())])))
     matrix: np.ndarray = np.zeros(dtype=int, shape=(len(edges), len(edges)))
     for key, values in interactions.items():
-        key_edge:int = edges.index(key)
+        key_edge: int = edges.index(key)
         for value in values:
             matrix[key_edge][edges.index(value)] = 1
             matrix[edges.index(value)][key_edge] = 1
