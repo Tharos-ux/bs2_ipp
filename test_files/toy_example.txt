@@ -1,4 +1,4 @@
-7
+10
 A B
 A C
 B C
@@ -6,3 +6,6 @@ B D
 D E
 D F
 E D
+G A
+G C
+G B

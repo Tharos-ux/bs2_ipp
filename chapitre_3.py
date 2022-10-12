@@ -1,11 +1,5 @@
-from code import interact
-from curses.ascii import isalpha
-from xml.sax.handler import property_declaration_handler
-from xmlrpc.client import Boolean
 import numpy as np
-from itertools import chain
-from os import system
-
+from itertools import chain, permutations
 from typing import Callable, Tuple
 from statistics import mean
 from collections import Counter
@@ -311,3 +305,28 @@ class Interactome:
         """
         self.__output_histogram(Counter(deg for deg in [len(
             value) for value in self.int_dict.values()] if deg >= dmin and deg <= dmax))
+
+    def __neighbors(self, prot: str) -> list:
+        return [a if b == prot else b for (a, b) in self.int_list if a == prot or b == prot]
+
+    def __clique(self, prot: str) -> int:
+        # get neighbors of prot
+        number_neighbors: int = len(self.__neighbors(prot))
+        return ((number_neighbors - 1) * number_neighbors)/2
+
+    def density(self) -> float:
+        """_summary_
+
+        Returns:
+            float: _description_
+        """
+        return (2*len(self.int_list))/(len(self.proteins)*(len(self.proteins)-1))
+
+    def clustering(self, prot: str) -> float:
+        if self.get_degree(prot) <= 1:
+            return 0
+        number_neigbors_interactions: int = len(
+            [0 for x in self.int_list if x in list(
+                permutations(self.__neighbors(prot), r=2))]
+        )
+        return number_neigbors_interactions/self.__clique(prot)

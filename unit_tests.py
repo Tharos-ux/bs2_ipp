@@ -1,6 +1,25 @@
 from os import system
 from unittest import TestCase
 from semaine12 import is_interaction_file
+from chapitre_3 import Interactome
+
+
+class TestObject(TestCase):
+
+    @property
+    def interactome(self):
+        """ Getter of the attribute interactome. """
+        return self.__interactome
+
+    @interactome.setter
+    def interactome(self, new_interactome):
+        """ Setter of the attribute interactome. """
+        if not isinstance(new_interactome, Interactome):
+            raise ValueError("Expecting a Interactome")
+        self.__interactome = new_interactome
+
+    def __init__(self):
+        self.interactome = Interactome("test_files/toy_example.txt")
 
 
 class TestMethods(TestCase):
