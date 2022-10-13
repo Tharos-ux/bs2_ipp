@@ -18,8 +18,13 @@ class TestObject(TestCase):
             raise ValueError("Expecting a Interactome")
         self.__interactome = new_interactome
 
-    def __init__(self):
+    def __init__(self, *args, **kwargs):
+        super(TestObject, self).__init__(*args, **kwargs)
         self.interactome = Interactome("test_files/toy_example.txt")
+
+    def test_object_instance(self):
+        "Tests if object is well implemented"
+        self.assertTrue(isinstance(self.interactome,Interactome))
 
 
 class TestMethods(TestCase):
