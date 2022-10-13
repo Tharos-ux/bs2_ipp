@@ -1,7 +1,6 @@
 from os import system
 from unittest import TestCase
-from semaine12 import is_interaction_file
-from chapitre_3 import Interactome
+from chapitre_3 import Interactome, is_interaction_file
 
 
 class TestObject(TestCase):
@@ -19,13 +18,68 @@ class TestObject(TestCase):
         self.__interactome = new_interactome
 
     def __init__(self, *args, **kwargs):
+        "Custom constructor"
         super(TestObject, self).__init__(*args, **kwargs)
         self.interactome = Interactome("test_files/toy_example.txt")
 
     def test_object_instance(self):
-        "Tests if object is well implemented"
+        "Tests if object instance is created"
         self.assertTrue(isinstance(self.interactome,Interactome))
 
+    def test_object_file_type(self):
+        "Tests if interactime.file is a str"
+        self.assertTrue(isinstance(self.interactome.file,str))
+
+    def test_object_file_property(self):
+        "Tests if interactime.file is well initialized"
+        self.assertEquals(self.interactome.file,"clean_int_graph.txt")
+
+    def test_object_int_list_type(self):
+        "Tests if interactime.int_list is a list"
+        self.assertTrue(isinstance(self.interactome.int_list,list))
+
+    def test_object_int_list_property(self):
+        "Tests if interactime.int_list is well initialized"
+        self.assertEquals(self.interactome.int_list,[('A', 'B'), ('A', 'C'), ('B', 'C'), ('B', 'D'), ('D', 'E'), ('D', 'F'), ('G', 'A'), ('G', 'C'), ('G', 'B')])
+
+    def test_object_int_dict_type(self):
+        "Tests if interactime.int_dict is a dict"
+        self.assertTrue(isinstance(self.interactome.int_dict,dict))
+    
+    def test_object_int_dict_property(self):
+        "Tests if interactime.int_dict is well initialized"
+        self.assertEquals(self.interactome.int_dict,{'A': ['B', 'C'], 'B': ['C', 'D'], 'D': ['E', 'F'], 'G': ['A', 'C', 'B']})
+
+    def test_object_proteins_type(self):
+        "Tests if interactime.proteins is a list"
+        self.assertTrue(isinstance(self.interactome.proteins,list))
+
+    def test_object_file_property(self):
+        "Tests if interactime.proteins is well initialized"
+        self.assertEquals(self.interactome.proteins,['A','B','C','D','E','F','G'])
+
+class TestIO(TestCase):
+
+    @property
+    def interactome(self):
+        """ Getter of the attribute interactome. """
+        return self.__interactome
+
+    @interactome.setter
+    def interactome(self, new_interactome):
+        """ Setter of the attribute interactome. """
+        if not isinstance(new_interactome, Interactome):
+            raise ValueError("Expecting a Interactome")
+        self.__interactome = new_interactome
+
+    def __init__(self, *args, **kwargs):
+        "Custom constructor"
+        super(TestIO, self).__init__(*args, **kwargs)
+        self.interactome = Interactome("test_files/test_05.txt")
+
+    def test_clean_interactome(self):
+        "Tests if file is correctly cleaned"
+        self.assertEquals(self.interactome.clean_interactome("test_files/test_05.txt"),())
 
 class TestMethods(TestCase):
 

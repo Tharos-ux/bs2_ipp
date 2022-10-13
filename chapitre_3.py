@@ -74,12 +74,38 @@ class Interactome:
         fileout : str, optional
             output path for a cleaned interactome txt file
         """
-        self.write_clean_interactome(file, fileout)
-        self.file = fileout
-        self.int_list, self.int_dict = self.read_interaction_file(
-            self.file)
+        self.file_in = file
+        self.file_out = fileout
+
+        self.write_clean_interactome()
+        self.int_list, self.int_dict = self.read_interaction_file()
+
         key, value = list(self.int_dict.keys()), list(self.int_dict.values())
         self.proteins = sorted(set(key + list(chain(*list(value)))))
+
+    @property
+    def file_in(self):
+        """ Getter of the attibute file_in. """
+        return self.__file_in
+
+    @file_in.setter
+    def file_in(self, new_file_in:str):
+        """ Setter of the attribute file_in. """
+        if not isinstance(new_file_in, str):
+            raise ValueError("Expecting a string")
+        self.__file_in = new_file_in
+
+    @property
+    def file_out(self):
+        """ Getter of the attibute file_out. """
+        return self.__file_out
+
+    @file_out.setter
+    def file_out(self, new_file_out:str):
+        """ Setter of the attribute file_out. """
+        if not isinstance(new_file_out, str):
+            raise ValueError("Expecting a string")
+        self.__file_out = new_file_out
 
     @property
     def int_list(self):
@@ -117,7 +143,7 @@ class Interactome:
             raise ValueError("Expecting a list")
         self.__proteins = new_proteins
 
-    def clean_interactome(self, filein: str) -> Tuple[list[Tuple[str, str]], int]:
+    def clean_interactome(self) -> Tuple[list[Tuple[str, str]], int]:
         """Cleans data from file by removing redundant interactions.
          Count the number of interactions
 
@@ -132,16 +158,16 @@ class Interactome:
             List of non redundant interactions, number of interactions.
         """
         list_interactions = list()
-        with open(filein, "r") as f:
+        with open(self.file_in, "r") as f:
             next(f)
             for line in f:
                 line_interaction = line.split()
-                if line_interaction[::-1] not in list_interactions:
-                    if line_interaction[0] != line_interaction[1]:
+                # ajouter condition pour interaction en doublon actuellement pas mise
+                if line_interaction[::-1] not in list_interactions and line_interaction[0] != line_interaction[1]:
                         list_interactions.append(line_interaction)
         return list_interactions, len(list_interactions)
 
-    def write_clean_interactome(self, filein: str, fileout: str) -> None:
+    def write_clean_interactome(self) -> None:
         """ Writes the cleaned data to the output file.
         Parameters
         ----------
@@ -150,12 +176,12 @@ class Interactome:
         fileout : str
             The cleaned interactome file
         """
-        list_interactions, nb_interactions = self.clean_interactome(filein)
-        with open(fileout, 'w') as handler:
+        list_interactions, nb_interactions = self.clean_interactome()
+        with open(self.file_out, 'w') as handler:
             handler.write('\n'.join(
                 [str(nb_interactions)]+[f"{key} {value}" for (key, value) in list_interactions]))
 
-    def read_interaction_file(self, file: str) -> Tuple[list[Tuple[str, str]], dict[str, list[str]]]:
+    def read_interaction_file(self) -> Tuple[list[Tuple[str, str]], dict[str, list[str]]]:
         """ Reads an interaction file and format the interactions in the form of a dictionary and a list.
 
         Parameters
@@ -170,7 +196,7 @@ class Interactome:
         """
         list_interactions = list()
         dico_interactions = dict()
-        with open(file, "r") as f:
+        with open(self.file_in, "r") as f:
             next(f)
             for line in f:
                 list_interactions.append(tuple(line.split()))
