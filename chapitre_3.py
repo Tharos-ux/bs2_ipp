@@ -162,9 +162,9 @@ class Interactome:
             next(f)
             for line in f:
                 line_interaction = line.split()
-                # ajouter condition pour interaction en doublon actuellement pas mise
-                if line_interaction[::-1] not in list_interactions and line_interaction[0] != line_interaction[1]:
-                        list_interactions.append(line_interaction)
+                # TODO fix cette fonction
+                if line_interaction[::-1] not in list_interactions and line_interaction[0] != line_interaction[1] and line_interaction not in list_interactions:
+                    list_interactions.append(line_interaction)
         return list_interactions, len(list_interactions)
 
     def write_clean_interactome(self) -> None:

@@ -79,7 +79,7 @@ class TestIO(TestCase):
 
     def test_clean_interactome(self):
         "Tests if file is correctly cleaned"
-        self.assertEquals(self.interactome.clean_interactome("test_files/test_05.txt"),())
+        self.assertEquals(self.interactome.clean_interactome("test_files/test_05.txt"),([['A', 'B'], ['A', 'C'], ['B', 'C'], ['C', 'D']], 4))
 
 class TestMethods(TestCase):
 

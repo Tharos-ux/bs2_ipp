@@ -1,6 +1,10 @@
-5
+9
 A B
 A C
-A C
 B C
-C D
+B D
+D E
+D F
+G A
+G C
+G B
