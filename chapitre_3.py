@@ -1,5 +1,5 @@
 import numpy as np
-from itertools import chain, permutations
+from itertools import chain, permutations, combinations
 from typing import Callable, Tuple
 from statistics import mean
 from collections import Counter
@@ -89,7 +89,7 @@ class Interactome:
         return self.__file_in
 
     @file_in.setter
-    def file_in(self, new_file_in:str):
+    def file_in(self, new_file_in: str):
         """ Setter of the attribute file_in. """
         if not isinstance(new_file_in, str):
             raise ValueError("Expecting a string")
@@ -101,7 +101,7 @@ class Interactome:
         return self.__file_out
 
     @file_out.setter
-    def file_out(self, new_file_out:str):
+    def file_out(self, new_file_out: str):
         """ Setter of the attribute file_out. """
         if not isinstance(new_file_out, str):
             raise ValueError("Expecting a string")
@@ -356,3 +356,24 @@ class Interactome:
                 permutations(self.__neighbors(prot), r=2))]
         )
         return number_neigbors_interactions/self.__clique(prot)
+
+
+def erdos_renyi_graph(n: int, q: float, oriented=False):
+    """Creates a random graph with n nodes and generate edges randomly between each set of nodes, with respect to the probability q.
+
+    Parameters
+    ----------
+    n : int
+        The number of nodes
+    q : float
+        The probability for the edges' creation
+    oriented : bool, optional
+        True if the graph is oriented, else False (default)
+    """
+    nodes = [str(i) for i in range(1, n+1)]
+    list_all_edges = list((combinations(nodes, 2)))
+    proba_array = [np.random.choice(np.arange(0, 2), p=[1-q, q])
+                   for _ in range(len(list_all_edges))]
+
+    graph = [edge for i, edge in enumerate(list_all_edges) if proba_array[i]]
+    return graph
