@@ -1,6 +1,6 @@
 from os import system
 from unittest import TestCase
-from chapitre_3 import Interactome, is_interaction_file
+from interactome import Interactome, is_interaction_file
 
 
 class TestObject(TestCase):
@@ -24,39 +24,43 @@ class TestObject(TestCase):
 
     def test_object_instance(self):
         "Tests if object instance is created"
-        self.assertTrue(isinstance(self.interactome,Interactome))
+        self.assertTrue(isinstance(self.interactome, Interactome))
 
     def test_object_file_type(self):
         "Tests if interactime.file is a str"
-        self.assertTrue(isinstance(self.interactome.file,str))
+        self.assertTrue(isinstance(self.interactome.file, str))
 
     def test_object_file_property(self):
         "Tests if interactime.file is well initialized"
-        self.assertEquals(self.interactome.file,"clean_int_graph.txt")
+        self.assertEquals(self.interactome.file, "clean_int_graph.txt")
 
     def test_object_int_list_type(self):
         "Tests if interactime.int_list is a list"
-        self.assertTrue(isinstance(self.interactome.int_list,list))
+        self.assertTrue(isinstance(self.interactome.int_list, list))
 
     def test_object_int_list_property(self):
         "Tests if interactime.int_list is well initialized"
-        self.assertEquals(self.interactome.int_list,[('A', 'B'), ('A', 'C'), ('B', 'C'), ('B', 'D'), ('D', 'E'), ('D', 'F'), ('G', 'A'), ('G', 'C'), ('G', 'B')])
+        self.assertEquals(self.interactome.int_list, [('A', 'B'), ('A', 'C'), ('B', 'C'), (
+            'B', 'D'), ('D', 'E'), ('D', 'F'), ('G', 'A'), ('G', 'C'), ('G', 'B')])
 
     def test_object_int_dict_type(self):
         "Tests if interactime.int_dict is a dict"
-        self.assertTrue(isinstance(self.interactome.int_dict,dict))
-    
+        self.assertTrue(isinstance(self.interactome.int_dict, dict))
+
     def test_object_int_dict_property(self):
         "Tests if interactime.int_dict is well initialized"
-        self.assertEquals(self.interactome.int_dict,{'A': ['B', 'C'], 'B': ['C', 'D'], 'D': ['E', 'F'], 'G': ['A', 'C', 'B']})
+        self.assertEquals(self.interactome.int_dict, {'A': ['B', 'C'], 'B': [
+                          'C', 'D'], 'D': ['E', 'F'], 'G': ['A', 'C', 'B']})
 
     def test_object_proteins_type(self):
         "Tests if interactime.proteins is a list"
-        self.assertTrue(isinstance(self.interactome.proteins,list))
+        self.assertTrue(isinstance(self.interactome.proteins, list))
 
     def test_object_file_property(self):
         "Tests if interactime.proteins is well initialized"
-        self.assertEquals(self.interactome.proteins,['A','B','C','D','E','F','G'])
+        self.assertEquals(self.interactome.proteins, [
+                          'A', 'B', 'C', 'D', 'E', 'F', 'G'])
+
 
 class TestIO(TestCase):
 
@@ -79,7 +83,9 @@ class TestIO(TestCase):
 
     def test_clean_interactome(self):
         "Tests if file is correctly cleaned"
-        self.assertEquals(self.interactome.clean_interactome("test_files/test_05.txt"),([['A', 'B'], ['A', 'C'], ['B', 'C'], ['C', 'D']], 4))
+        self.assertEquals(self.interactome.clean_interactome(
+            "test_files/test_05.txt"), ([['A', 'B'], ['A', 'C'], ['B', 'C'], ['C', 'D']], 4))
+
 
 class TestMethods(TestCase):
 
