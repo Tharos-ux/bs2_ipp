@@ -4,6 +4,8 @@ from typing import Callable, Tuple
 from statistics import mean
 from collections import Counter
 import matplotlib.pyplot as plt
+import plotly.graph_objects as go
+import networkx as nx
 
 
 def is_interaction_file(filename: str) -> bool:
@@ -142,6 +144,27 @@ class Interactome:
         if not isinstance(new_proteins, list):
             raise ValueError("Expecting a list")
         self.__proteins = new_proteins
+
+    def __str__(self):
+        graph = nx.Graph()
+        for prot_a, prot_b in self.int_list:
+            graph.add_edge(prot_a, prot_b)
+
+        options = {
+            "font_size": 6,
+            "node_size": 300,
+            "node_color": "white",
+            "edgecolors": "black",
+            "linewidths": 1,
+            "width": 1,
+        }
+        nx.draw_networkx(graph, None, **options)
+
+        ax = plt.gca()
+        ax.margins(0.20)
+        plt.axis("off")
+        plt.show()
+        return f"Displaying Interactome object with {len(self.proteins)} nodes and {len(self.int_list)} interactions."
 
     def clean_interactome(self) -> Tuple[list[Tuple[str, str]], int]:
         """Cleans data from file by removing redundant interactions.
