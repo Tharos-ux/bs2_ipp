@@ -1,10 +1,11 @@
+from random import choice, choices
+from string import ascii_uppercase
 import numpy as np
 from itertools import chain, permutations, combinations
 from typing import Callable, Tuple
 from statistics import mean
 from collections import Counter
 import matplotlib.pyplot as plt
-import plotly.graph_objects as go
 import networkx as nx
 
 
@@ -81,9 +82,10 @@ class Interactome:
 
         self.write_clean_interactome()
         self.int_list, self.int_dict = self.read_interaction_file()
+        self.int_mat, self.proteins = self.read_interaction_file_mat()
 
-        key, value = list(self.int_dict.keys()), list(self.int_dict.values())
-        self.proteins = sorted(set(key + list(chain(*list(value)))))
+        #key, value = list(self.int_dict.keys()), list(self.int_dict.values())
+        #sorted(set(key + list(chain(*list(value)))))
 
     @property
     def file_in(self):
@@ -122,6 +124,18 @@ class Interactome:
         self.__int_list = new_int_list
 
     @property
+    def int_mat(self):
+        """ Getter of the attribute int_mat. """
+        return self.__int_mat
+
+    @int_mat.setter
+    def int_mat(self, new_int_mat):
+        """ Setter of the attribute int_mat. """
+        if not isinstance(new_int_mat, np.ndarray):
+            raise ValueError("Expecting an array")
+        self.__int_mat = new_int_mat
+
+    @property
     def int_dict(self):
         """ Getter of the attribute int_dict. """
         return self.__int_dict
@@ -150,14 +164,18 @@ class Interactome:
         for prot_a, prot_b in self.int_list:
             graph.add_edge(prot_a, prot_b)
 
+        colors = [len(graph.adj[node]) for node in list(graph.nodes())]
+
         options = {
             "font_size": 6,
             "node_size": 300,
-            "node_color": "white",
+            "cmap": plt.cm.Purples,
+            "node_color": colors,
             "edgecolors": "black",
             "linewidths": 1,
             "width": 1,
         }
+        # "node_color": "white",
         nx.draw_networkx(graph, None, **options)
 
         ax = plt.gca()
@@ -380,6 +398,15 @@ class Interactome:
         )
         return number_neigbors_interactions/self.__clique(prot)
 
+    def __generate_protein(self, length: int = 5) -> str:
+        while True:
+            prot_name: str = ''.join(choice(ascii_uppercase)
+                                     for i in range(length))
+            if prot_name not in self.proteins:
+                break
+        self.proteins = self.proteins + [prot_name]
+        return prot_name
+
     def erdos_renyi_graph(self, n: int, q: float, oriented=False):
         """Creates a random graph with n nodes and generate edges randomly between each set of nodes, with respect to the probability q.
 
@@ -394,7 +421,7 @@ class Interactome:
         """
         nodes = [str(i) for i in range(1, n+1)]
         list_all_edges = list((combinations(nodes, 2)))
-        proba_array = [np.random.choice(np.arange(0, 2), p=[1-q, q])
+        proba_array = [choices([0, 1], weights=[1-q, q])[0]
                        for _ in range(len(list_all_edges))]
 
         graph = [edge for i, edge in enumerate(
@@ -416,17 +443,12 @@ class Interactome:
         list[Tuple[str, str]]
             The new graph containing all the new nodes, linked to the original nodes according to the Barabasi algorithm
         """
-        key_vertice = list(self.int_dict.keys())
-        value_vertice = list(self.int_dict.values())
-        count_vertices = len(
-            sorted(set(key_vertice + list(chain(*value_vertice)))))
-        for node in range(m):
-            self.int_dict.setdefault(node, []).append(node)
-        for key in self.int_dict.keys():
-            probability = (self.get_degree(key)+1) / \
-                (2*self.count_edges() + count_vertices)
-            result = np.random.choice(
-                np.arange(0, 2), p=[1-probability, probability])
-            if result:
-                self.int_dict.setdefault(node, []).append(key)
-        return self.int_dict
+        for node in [self.__generate_protein() for _ in range(m)]:
+            self.int_dict[node] = []
+            for key in self.int_dict.keys():
+                probability = (self.get_degree(key)+1) / \
+                    (2*self.count_edges() + self.count_vertices())
+                if choices([0, 1], weights=[1-probability, probability])[0]:
+                    self.int_list.append((node, key))
+                    self.int_dict[key].append(node)
+        self.int_mat, self.proteins = self.read_interaction_file_mat()
