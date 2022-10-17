@@ -5,4 +5,6 @@ if __name__ == "__main__":
     toy_graph: Interactome = Interactome("test_files/toy_example.txt")
 
     # Visualisation du graphe d'interactions
-    print(toy_graph)
+    # print(toy_graph)
+
+    print(toy_graph.barabasi_albert_graph(10))

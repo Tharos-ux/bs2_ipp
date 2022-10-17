@@ -416,17 +416,17 @@ class Interactome:
         list[Tuple[str, str]]
             The new graph containing all the new nodes, linked to the original nodes according to the Barabasi algorithm
         """
-        graph = self.int_dict
         key_vertice = list(self.int_dict.keys())
         value_vertice = list(self.int_dict.values())
         count_vertices = len(
             sorted(set(key_vertice + list(chain(*value_vertice)))))
         for node in range(m):
-            graph.setdefault(node, []).append(node)
-        for key in graph.keys():
+            self.int_dict.setdefault(node, []).append(node)
+        for key in self.int_dict.keys():
             probability = (self.get_degree(key)+1) / \
                 (2*self.count_edges() + count_vertices)
             result = np.random.choice(
                 np.arange(0, 2), p=[1-probability, probability])
             if result:
-                graph.setdefault(node, []).append(key)
+                self.int_dict.setdefault(node, []).append(key)
+        return self.int_dict
