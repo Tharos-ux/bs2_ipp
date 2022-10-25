@@ -160,16 +160,34 @@ class Interactome:
         self.__proteins = new_proteins
 
     def __str__(self):
+        return f"Interactome object with {len(self.proteins)} nodes and {len(self.int_list)} interactions."
+
+    def __no_color(self, graph: nx.Graph):
+        return [0 for _ in list(graph.nodes())]
+
+    def color_by_neighbors(self, graph: nx.Graph):
+        return [len(graph.adj[node]) for node in list(graph.nodes())]
+
+    def color_by_connectivity(self, graph: nx.Graph):
+        components: list = [
+            list(x) for x in nx.algorithms.components.connected_components(graph)]
+        flattened: list = [item for sublist in components for item in sublist]
+        codes: list = [i for i, sublist in enumerate(
+            components) for _ in sublist]
+        return [codes[flattened.index(node)] for node in list(graph.nodes())]
+
+    def draw(self, method: Callable = __no_color, colormap=plt.cm.Purples):
+        plt.cla()
         graph = nx.Graph()
         for prot_a, prot_b in self.int_list:
             graph.add_edge(prot_a, prot_b)
 
-        colors = [len(graph.adj[node]) for node in list(graph.nodes())]
+        colors = method(self, graph)
 
         options = {
             "font_size": 6,
             "node_size": 300,
-            "cmap": plt.cm.Purples,
+            "cmap": colormap,
             "node_color": colors,
             "edgecolors": "black",
             "linewidths": 1,
@@ -182,7 +200,6 @@ class Interactome:
         ax.margins(0.20)
         plt.axis("off")
         plt.show()
-        return f"Displaying Interactome object with {len(self.proteins)} nodes and {len(self.int_list)} interactions."
 
     def clean_interactome(self) -> Tuple[list[Tuple[str, str]], int]:
         """Cleans data from file by removing redundant interactions.
