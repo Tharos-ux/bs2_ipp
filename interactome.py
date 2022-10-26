@@ -10,6 +10,11 @@ import networkx as nx
 
 
 def is_interaction_file(filename: str) -> bool:
+    ############
+    #ATTENTION, NE CAPTURE PAS L'ERREUR SI LE NOMBRE D'INTERACTION EN DEBUT DE FICHIER EST MAUVAIS.
+    # CHERCHE A INIT self.__proteins qui n'existe pas :
+    # AttributeError: 'Interactome' object has no attribute '_Interactome__proteins'. Did you mean: '_Interactome__neighbors'?
+    ############
     """Checks if file is correct
 
     Raises:
@@ -79,10 +84,10 @@ class Interactome:
         """
         self.file_in = file
         self.file_out = fileout
-
         self.write_clean_interactome()
         self.int_list, self.int_dict = self.read_interaction_file()
         self.int_mat, self.proteins = self.read_interaction_file_mat()
+        self.flat_list = list(chain(*self.int_list))
 
         #key, value = list(self.int_dict.keys()), list(self.int_dict.values())
         #sorted(set(key + list(chain(*list(value)))))
@@ -254,7 +259,7 @@ class Interactome:
         """
         list_interactions = list()
         dico_interactions = dict()
-        with open(self.file_in, "r") as f:
+        with open(self.file_out, "r") as f:
             next(f)
             for line in f:
                 list_interactions.append(tuple(line.split()))
@@ -320,35 +325,48 @@ class Interactome:
         Returns
         -------
         int
-            The number of edges linked to a specific protein if the protein exists, else 0.
+            The number of edges linked to a specific protein if the protein exists, else raise a ValueError.
         """
-        return len(self.int_dict[prot]) if prot in self.int_dict else 0
+        if prot in self.proteins:
+            degree = self.flat_list.count(prot) 
+        else:
+            raise ValueError("Protein does not exist")
+        return degree
+        
+        # return len(self.int_dict[prot]) if prot in self.int_dict else 0
 
-    def get_max_degree(self) -> Tuple[str, int]:
+    def get_max_degree(self) -> Tuple[int, list]:
         """Gets the protein with the highest number of interactions and the number of interactions associated.
 
         Returns
         -------
-        Tuple[str, int]
-            The name of the protein and the number of interactions associated.
+        Tuple[int, list]
+            The number of interaction max and the names of the proteins associated.
         """
-        max_interactions = 0
-        for key, value in self.int_dict.items():
-            len_val = len(value)
-            if len_val > max_interactions:
-                max_interactions = len_val
-                return key, len_val
+        list_degrees = [self.get_degree(prot) for prot in self.proteins]
+        max_degree = max(list_degrees)
+        prot_max_degree = [self.proteins[i] for i, degree in enumerate(list_degrees) if degree == max_degree]
+        return max_degree, prot_max_degree
 
-    def get_ave_degree(self) -> int:
+        #max_interactions = 0
+        #for key, value in self.int_dict.items():
+        #    len_val = len(value)
+        #    if len_val > max_interactions:
+        #        max_interactions = len_val
+        #        return key, len_val
+
+
+    def get_ave_degree(self) -> float:
         """Gives the approximate average degree
 
         Returns
         -------
-        int
-            The average degree of PPI interactions, rounded
+        float
+            The average degree of PPI interactions, rounded at two decimals
         """
-        return int(mean(list({key: len(value)
-                              for key, value in self.int_dict.items()}.values())))
+        return round(mean([self.get_degree(prot) for prot in self.proteins]),2)
+        #return int(mean(list({key: len(value)
+        #                      for key, value in self.int_dict.items()}.values())))
 
     def count_degree(self, deg: int) -> int:
         """Counts the number of proteins with a given degree deg
@@ -361,9 +379,11 @@ class Interactome:
         Returns
         -------
         int
-            The number of proteins in the graph with the given degree
+            The number of proteins in the graph with the given degree deg
         """
-        return len([k for k, v in {key: len(value) for key, value in self.int_dict.items()}.items() if v == deg])
+        list_degrees = [self.get_degree(prot) for prot in self.proteins]
+        return len([self.proteins[i] for i, degree in enumerate(list_degrees) if degree == deg])
+        # return len([k for k, v in {key: len(value) for key, value in self.int_dict.items()}.items() if v == deg])
 
     def __output_histogram(self, data: Counter) -> None:
         """Plots histogram from counter
@@ -399,21 +419,35 @@ class Interactome:
         return ((number_neighbors - 1) * number_neighbors)/2
 
     def density(self) -> float:
-        """_summary_
+        """Computes the density of the graph
 
-        Returns:
-            float: _description_
+        Returns
+        -------
+        float
+            The density calculated, rounded at two decimals
         """
-        return (2*len(self.int_list))/(len(self.proteins)*(len(self.proteins)-1))
+        return round((2*len(self.int_list))/(len(self.proteins)*(len(self.proteins)-1)),2)
 
     def clustering(self, prot: str) -> float:
+        """Computes the clustering coefficient of a node in a graph
+
+        Parameters
+        ----------
+        prot : str
+            The protein of which we want to know the clustering coefficient
+
+        Returns
+        -------
+        float
+            The clustering coefficient of the protein prot rounded at two decimals, 0 if it has no neighbors
+        """
         if self.get_degree(prot) <= 1:
             return 0
-        number_neigbors_interactions: int = len(
+        number_neighbors_interactions: int = len(
             [0 for x in self.int_list if x in list(
                 permutations(self.__neighbors(prot), r=2))]
         )
-        return number_neigbors_interactions/self.__clique(prot)
+        return round(number_neighbors_interactions/self.__clique(prot),2)
 
     def __generate_protein(self, length: int = 5) -> str:
         while True:
