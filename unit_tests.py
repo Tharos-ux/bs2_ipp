@@ -23,6 +23,7 @@ class TestObject(TestCase):
         super(TestObject, self).__init__(*args, **kwargs)
         self.interactome = Interactome("test_files/toy_example.txt")
         self.interactome2 = Interactome("test_files/toy_example2.txt")
+        self.interactome_Human = Interactome("test_files/Human_HighQuality.txt")
 
     def test_object_instance(self):
         "Tests if object instance is created"
@@ -184,6 +185,7 @@ class TestMethods(TestCase):
         "Tests if the number of degrees of a protein is well counted, and returns None if the protein is not in the graph"
         self.assertEquals(self.interactome.get_degree("A"), 3)
         self.assertEquals(self.interactome.get_degree("E"), 1)
+        self.assertEquals(self.interactome_Human.get_degree("1433B_HUMAN"), 49)
         #######################
         # COMMENT VERIFIER QUE CA RAISE UN ValueError ?
         #######################
@@ -202,10 +204,11 @@ class TestMethods(TestCase):
     def get_ave_degree(self):
         #######################
         # NE FONCTIONNE PAS, NE TIENS PAS COMPTE QUE LE GRAPHE EST NON ORIENTE, il faut parcourir la liste et compter le nombre d'occurence de chaque prot
-        # => MODIF FAITE, float rounded
+        # => MODIF FAITE, float
+        # => pas sure de la fonction equivalente en networkx ou si on repond bien à la consigne
         #######################
         "Tests if the average degree of a graph is well calculated"
-        self.assertEquals(self.interactome.get_ave_degree(), 2.57)
+        self.assertEquals(round(self.interactome.get_ave_degree(),2), 2.57)
     
     # TEST METHOD count_degree
     def count_degree(self):
@@ -222,24 +225,28 @@ class TestMethods(TestCase):
     # TEST METHOD histogram_degree
     # Flemme
 
-    
     # TEST METHOD density
     def density(self):
-        # ADD ROUND TO THE FUNCTION => OK
         "Tests if the density of a graph is well calculated"
-        self.assertEquals(self.interactome.density(), 0.43)
+        self.assertEquals(round(self.interactome.density(),2), 0.43)
+        self.assertEquals(round(self.interactome2.density(),2), 0.48)
+        self.assertEquals(round(self.interactome_Human.density(),8), 0.00059248)
     
     # TEST METHOD clustering
     def clustering(self):
-    # ADD ROUND TO THE FUNCTION => OK
         "Tests if the clustering coefficient of a protein is well calculated"
-        self.assertEquals(self.interactome.clustering("A"), 1.0)
-        self.assertEquals(self.interactome.clustering("C"), 1.0)
-        self.assertEquals(self.interactome.clustering("D"), 0.0)
-        self.assertEquals(self.interactome2.clustering("D"), 0.33)
+        self.assertEquals(round(self.interactome.clustering("A"),4), 1.0)
+        self.assertEquals(round(self.interactome.clustering("C"),4), 1.0)
+        self.assertEquals(round(self.interactome.clustering("D"),4), 0.0)
+        self.assertEquals(round(self.interactome2.clustering("D"),4), 0.3333)
+        self.assertEquals(round(self.interactome_Human.clustering("1433B_HUMAN"),4), 0.0527)
     
     # TEST METHOD erdos_renyi_graph
     # count number of nodes and edges
+    '''Afin de vérifier votre méthode, construisez un graphe aléatoire de paramètre p = 0.3
+    et calculez ensuite la distribution des degrés des sommets. Pour ce faire, vous devriez
+    vous servir de méthodes implémentées au chapitre 2
+    '''    
     
     # TEST METHOD barabasi_albert_graph
     

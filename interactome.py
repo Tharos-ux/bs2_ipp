@@ -359,9 +359,9 @@ class Interactome:
         Returns
         -------
         float
-            The average degree of PPI interactions, rounded at two decimals
+            The average degree of PPI interactions
         """
-        return round(mean([self.get_degree(prot) for prot in self.proteins]),2)
+        return mean([self.get_degree(prot) for prot in self.proteins])
         #return int(mean(list({key: len(value)
         #                      for key, value in self.int_dict.items()}.values())))
 
@@ -421,11 +421,14 @@ class Interactome:
         Returns
         -------
         float
-            The density calculated, rounded at two decimals
+            The density calculated
         """
-        return round((2*len(self.int_list))/(len(self.proteins)*(len(self.proteins)-1)),2)
+        return (2*self.count_edges())/(self.count_vertices()*(self.count_vertices()-1))
 
     def clustering(self, prot: str) -> float:
+        #########
+        #FONCTIONNE MAIS A OPTIMISER (très long avec de gros graphes)
+        #########
         """Computes the clustering coefficient of a node in a graph
 
         Parameters
@@ -436,7 +439,7 @@ class Interactome:
         Returns
         -------
         float
-            The clustering coefficient of the protein prot rounded at two decimals, 0 if it has no neighbors
+            The clustering coefficient of the protein prot, 0 if it has no neighbors
         """
         if self.get_degree(prot) <= 1:
             return 0
@@ -444,7 +447,7 @@ class Interactome:
             [0 for x in self.int_list if x in list(
                 permutations(self.__neighbors(prot), r=2))]
         )
-        return round(number_neighbors_interactions/self.__clique(prot),2)
+        return number_neighbors_interactions/self.__clique(prot)
 
     def __generate_protein(self, length: int = 5) -> str:
         while True:

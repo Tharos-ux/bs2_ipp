@@ -5,14 +5,14 @@ import tkinter as tk
 import matplotlib.pyplot as plt
 
 if __name__ == "__main__":
+    
     parser = ArgumentParser()
     parser.add_argument(
         "file", help="Path to a interactome file", type=str)
     args = parser.parse_args()
     # Initialisation d'un objet Interactome
     toy_graph: Interactome = Interactome(args.file)
-    print(toy_graph.count_edges())
-
+    print(toy_graph.get_degree("1433B_HUMAN"))
     
 '''
     layout: int = 200
