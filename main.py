@@ -11,7 +11,7 @@ if __name__ == "__main__":
     args = parser.parse_args()
     # Initialisation d'un objet Interactome
     toy_graph: Interactome = Interactome(args.file)
-    print(toy_graph.clustering("F"))
+    print(toy_graph.count_edges())
 
     
 '''

@@ -299,9 +299,7 @@ class Interactome:
         int
             Number of unique vertices in the graph
         """
-        key = list(self.int_dict.keys())
-        value = list(self.int_dict.values())
-        return len(sorted(set(key + list(chain(*value)))))
+        return len(self.proteins)
 
     def count_edges(self) -> int:
         """ Count the number of edges from a dictionary.
@@ -311,8 +309,7 @@ class Interactome:
         int
             Number of unique edges in the graph
         """
-        value = list(self.int_dict.values())
-        return len(list(chain(*value)))
+        return len(self.int_list)
 
     def get_degree(self, prot: str) -> int:
         """Count the number of interactions for a specific protein.
