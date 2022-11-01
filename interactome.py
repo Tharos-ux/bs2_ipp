@@ -62,7 +62,7 @@ def check_interaction_file(f: Callable) -> Callable:
         """Inner part of decorator, responsible for checks
 
         Returns:
-            object: the object returned by the Callable
+            Object: the object returned by the Callable
         """
         if is_interaction_file(args[1]):
             return f(*args, **kwargs)
@@ -78,9 +78,9 @@ class Interactome:
         Parameters
         ----------
         file : str
-            a path to an interactome file in txt format
+            A path to an interactome file in txt format
         fileout : str, optional
-            output path for a cleaned interactome txt file
+            Output path for a cleaned interactome txt file
         """
         self.file_in = file
         self.file_out = fileout
@@ -258,14 +258,14 @@ class Interactome:
             The list of interactions and the dictionary of interactions
         """
         list_interactions = list()
-        dico_interactions = dict()
+        dict_interactions = dict()
         with open(self.file_out, "r") as f:
             next(f)
             for line in f:
                 list_interactions.append(tuple(line.split()))
                 key, value = line.split()
-                dico_interactions.setdefault(key, []).append(value)
-        return list_interactions, dico_interactions
+                dict_interactions.setdefault(key, []).append(value)
+        return list_interactions, dict_interactions
 
     def read_interaction_file_mat(self) -> Tuple[np.ndarray, list[str]]:
         """Reads a dictionary of interactions and format the interactions in the form of a matrix.
@@ -279,16 +279,16 @@ class Interactome:
         """
         key = list(self.int_dict.keys())
         value = list(self.int_dict.values())
-        liste_sommets = sorted(set(key + list(chain(*value))))
-        dim = len(liste_sommets)
+        nodes_list = sorted(set(key + list(chain(*value))))
+        dim = len(nodes_list)
         matrix = np.zeros([dim, dim], dtype=int)
         for key2, value2 in self.int_dict.items():
-            col = liste_sommets.index(key2)
+            col = nodes_list.index(key2)
             for item in value2:
-                ligne = liste_sommets.index(item)
-                matrix[ligne][col] = 1
-                matrix[col][ligne] = 1
-        return np.asarray(matrix), liste_sommets
+                line = nodes_list.index(item)
+                matrix[line][col] = 1
+                matrix[col][line] = 1
+        return np.asarray(matrix), nodes_list
 
     def count_vertices(self) -> int:
         """ Count the number of unique vertices from a dictionary,
@@ -326,6 +326,7 @@ class Interactome:
         """
         if prot in self.proteins:
             degree = self.flat_list.count(prot) 
+            # degree = sum(self.int_mat[self.proteins.index(prot)])
         else:
             raise ValueError("Protein does not exist")
         return degree
@@ -503,3 +504,115 @@ class Interactome:
                     self.int_list.append((node, key))
                     self.int_dict[key].append(node)
         self.int_mat, self.proteins = self.read_interaction_file_mat()
+    
+
+    def extract_all_CC(self) -> dict:
+        """ Extracts all the paths from a graph
+
+        Returns
+        -------
+        dict
+            A dictionnary where the key is the path's number, and the value is the list of nodes belonging to the path.
+        """
+        nodes_left = self.proteins
+        CC_dict = dict()
+        i = 1
+        while nodes_left:
+            prot = nodes_left[0]
+            CC_dict[i] = self.extract_CC(prot)
+            nodes_left = list(filter(lambda x : x not in CC_dict[i], nodes_left))
+            i += 1
+        return CC_dict
+    
+    def extract_CC(self, prot : str, path=list(), i = 0) -> list:
+        """Identifies all the nodes contained in the same path as the protein given in argument
+
+        Parameters
+        ----------
+        prot : str
+            The protein
+        path :
+            A list that will contain the path including the protein
+        i : 
+            An integer initialised at 0        
+        Returns
+        -------
+        list
+            A list that contains the path including the protein
+        """     
+        path = path+[prot]
+        # i is there in case the starting node only has one edge
+        if self.get_degree(prot) > 1 or i == 0:
+            i = 1
+            for node in self.get_neighbors(prot):
+                if node not in path:
+                    path = self.extract_CC(node,path)
+        return path
+        
+    def get_neighbors(self, prot : str) -> list:
+        """ Extracts the list of neighbors of a given protein from an interaction matrix
+
+        Parameters
+        ----------
+        prot : str
+            The given protein
+
+        Returns
+        -------
+        list
+            The list of the protein's neighbors
+        """
+        list_nodes_CC = []
+        prot_index_in_matrix = self.int_mat[self.proteins.index(prot)]
+        for i in range(len(self.proteins)):
+            if prot_index_in_matrix[i] == 1:
+                list_nodes_CC.append(self.proteins[i])
+        return list_nodes_CC
+        
+    def count_CC(self) -> Tuple[int, list[int,int]]:
+        """Calculates the size of each path and the total number of paths in a graph
+
+        Parameters
+        ----------
+
+        Returns
+        -------
+        int 
+            The total number of paths
+        list[int,int] :
+            A list containing a tuple for each path. Each tuple contains the label and the size of a path
+        """
+        dico = self.extract_all_CC()
+        count_CC = max(dico.keys())
+        list_size_CC = [(key,len(value)) for key, value in dico.items()]        
+        return count_CC, list_size_CC
+        
+        
+    def write_CC(self, CC_file_out = "CC_file_out") -> None:
+        """ Writes in an output file the size and the nodes contained in each path of the graph. 
+        Each line in the file shows first the size of the path and then list the nodes included in the path.
+
+        Parameters
+        ----------
+        CC_file_out : str, optional
+            The name of the file created, by default "CC_file_out"
+        """
+        dico = self.extract_all_CC()
+        with open(CC_file_out, 'w') as handler:
+            handler.write('\n'.join([f"{str(len(value))} {value}" for value in dico.values()]))
+        
+
+    def compute_CC(self) -> list[int,str]:
+        ##########
+        # JE NE COMPREND PAS A QUOI SERT CETTE FONCTION
+        ##########
+        """ Creates a list containing the path label associated to each proteins
+
+        Returns
+        -------
+        list[int, str]
+            A list containing tuples. Each tuple contains the path's label and the name of the protein belonging to this path
+        """
+        dico = self.extract_all_CC()
+        return list(chain(*[[(key, i) for i in value ] for key, value in dico.items()]))
+        

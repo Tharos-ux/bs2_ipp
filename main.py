@@ -12,9 +12,8 @@ if __name__ == "__main__":
     args = parser.parse_args()
     # Initialisation d'un objet Interactome
     toy_graph: Interactome = Interactome(args.file)
-    print(toy_graph.get_degree("1433B_HUMAN"))
+    print(toy_graph.write_CC())
     
-'''
     layout: int = 200
     button_methods: list[dict] = [
         # Visualisation du graphe d'interactions coloré par degré
@@ -49,4 +48,3 @@ if __name__ == "__main__":
     # Affichage de différentes propriétés après modification
     # print(toy_graph.int_dict)
     # print(toy_graph.int_mat)
-'''
