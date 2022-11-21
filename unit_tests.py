@@ -23,7 +23,7 @@ class TestObject(TestCase):
         super(TestObject, self).__init__(*args, **kwargs)
         self.interactome = Interactome("test_files/toy_example.txt")
         self.interactome2 = Interactome("test_files/toy_example2.txt")
-        self.interactome_Human = Interactome("test_files/Human_HighQuality.txt")
+        #self.interactome_Human = Interactome("test_files/Human_HighQuality.txt")
 
     def test_object_instance(self):
         "Tests if object instance is created"
@@ -129,10 +129,12 @@ class TestMethods(TestCase):
 
     def __init__(self, *args, **kwargs):
         "Custom constructor"
-        super(TestObject, self).__init__(*args, **kwargs)
+        super(TestMethods, self).__init__(*args, **kwargs)
         self.interactome = Interactome("test_files/toy_example.txt")
         self.interactome2 = Interactome("test_files/toy_example2.txt")
-        self.interactome_Human = Interactome("test_files/Human_HighQuality.txt")
+        self.interactomeCC = Interactome("test_files/toy_example_CC.txt")
+        self.interactome_ER = Interactome( "", method= "erdos-renyi", kwargs={"n":100, "q":0.3})
+        #self.interactome_Human = Interactome("test_files/Human_HighQuality.txt")
 
     def test_file_does_not_exists(self):
         "Tests when file does not exists"
@@ -154,10 +156,10 @@ class TestMethods(TestCase):
         "Tests the file which was given as toy example"
         self.assertTrue(is_interaction_file("test_files/toy_example.txt"))
 
-    def test_human_file(self):
+    '''def test_human_file(self):
         "Tests the file which was given as human example"
         self.assertTrue(is_interaction_file(
-            "test_files/Human_HighQuality.txt"))
+            "test_files/Human_HighQuality.txt"))'''
 
     def test_correct_file(self):
         "Tests a file with a single interaction"
@@ -202,13 +204,13 @@ class TestMethods(TestCase):
         "Tests if the number of degrees of a protein is well counted"
         self.assertEquals(self.interactome.get_degree("E"), 1)
     
-    def test_get_degree_human(self):
+    '''def test_get_degree_human(self):
         "Tests if the number of degrees of a protein is well counted"
-        self.assertEquals(self.interactome_Human.get_degree("1433B_HUMAN"), 49)
+        self.assertEquals(self.interactome_Human.get_degree("1433B_HUMAN"), 49)'''
 
     def test_get_degree_error(self):
         "Tests if the number of degrees of a protein which is non-exitent"
-        self.assertRaises(ValueError,self.interactome.get_degree("Y"))
+        self.assertRaises(ValueError,self.interactome.get_degree,"Y")
     
     # TEST METHOD get_max_degree
     def get_max_degree(self):
@@ -249,7 +251,7 @@ class TestMethods(TestCase):
         "Tests if the density of a graph is well calculated"
         self.assertEquals(round(self.interactome.density(),2), 0.43)
         self.assertEquals(round(self.interactome2.density(),2), 0.48)
-        self.assertEquals(round(self.interactome_Human.density(),8), 0.00059248)
+        #self.assertEquals(round(self.interactome_Human.density(),8), 0.00059248)
     
     # TEST METHOD clustering
     def clustering(self):
@@ -258,18 +260,47 @@ class TestMethods(TestCase):
         self.assertEquals(round(self.interactome.clustering("C"),4), 1.0)
         self.assertEquals(round(self.interactome.clustering("D"),4), 0.0)
         self.assertEquals(round(self.interactome2.clustering("D"),4), 0.3333)
-        self.assertEquals(round(self.interactome_Human.clustering("1433B_HUMAN"),4), 0.0527)
+        #self.assertEquals(round(self.interactome_Human.clustering("1433B_HUMAN"),4), 0.0527)
     
+    # TEST METHOD extract_CC
+    def test_extract_CC1(self):
+        self.assertEquals(self.interactomeCC.extract_CC('A'), ['A', 'B', 'C', 'E', 'F'])
+    
+    def test_extract_CC2(self):
+        self.assertEquals(self.interactomeCC.extract_CC('O'), ['O', 'P', 'Q', 'R'])
+        
+    def test_extract_all_CC(self):
+        self.assertEquals(self.interactomeCC.extract_all_CC(), {1: ['A', 'B', 'C', 'E', 'F'], 2: ['G', 'H'], 3: ['I', 'J', 'K', 'L', 'M'], 4: ['O', 'P', 'Q', 'R'], 5: ['S', 'T'], 6: ['U', 'V', 'W']})
+
+    def test_get_neighbors1(self):
+        self.assertEquals(self.interactome2.get_neighbors('A'), ['B', 'C','G'])
+        
+    def test_get_neighbors2(self):
+        self.assertEquals(self.interactome2.get_neighbors('F'), ['D','E'])
+        
+    def test_compute_CC(self):
+        self.assertEquals(self.interactomeCC.compute_CC(), [(1, 'A'), (1, 'B'), (1, 'C'), (1, 'E'), (1, 'F'), (2, 'G'), (2, 'H'), (3, 'I'), (3, 'J'), (3, 'K'), (3, 'L'), (3, 'M'), (4, 'O'), (4, 'P'), (4, 'Q'), (4, 'R'), (5, 'S'), (5, 'T'), (6, 'U'), (6, 'V'), (6, 'W')])
+    
+    def test_count_CC(self):
+        self.assertEquals(self.interactomeCC.count_CC(), (6, [(1, 5), (2, 2), (3, 5), (4, 4), (5, 2), (6, 3)]))
+        
+              
     # TEST METHOD erdos_renyi_graph
     # count number of nodes and edges
     '''Afin de vérifier votre méthode, construisez un graphe aléatoire de paramètre p = 0.3
     et calculez ensuite la distribution des degrés des sommets. Pour ce faire, vous devriez
     vous servir de méthodes implémentées au chapitre 2
-    '''    
-    
+    '''
+    def test_erdos_renyi_graph(self):
+        distribution = self.interactome_ER.get_ave_degree()        
+        self.assertEquals(round(distribution,1), 3.3)
+        
     # TEST METHOD barabasi_albert_graph
     
-    
+    '''
+    def test_write_CC():
+        pass   
+    '''
         
 
 if __name__ == "__main__":

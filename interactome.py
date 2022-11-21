@@ -470,6 +470,10 @@ class Interactome:
             The probability for the edges' creation
         oriented : bool, optional
             True if the graph is oriented, else False (default)
+        Returns
+        -------
+        List
+            the erdos renyi graph
         """
         nodes = [str(i) for i in range(1, n+1)]
         list_all_edges = list((combinations(nodes, 2)))

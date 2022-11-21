@@ -12,7 +12,7 @@ if __name__ == "__main__":
     args = parser.parse_args()
     # Initialisation d'un objet Interactome
     toy_graph: Interactome = Interactome(args.file)
-    print(toy_graph.write_CC())
+    print(toy_graph.count_CC())
     
     layout: int = 200
     button_methods: list[dict] = [
