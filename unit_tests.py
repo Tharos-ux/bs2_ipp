@@ -51,10 +51,6 @@ class TestObject(TestCase):
         self.assertTrue(isinstance(self.interactome.int_list, list))
 
     def test_object_int_list_property(self):
-        #######################
-        # ATTENTION TEST FAUX, (D E) ET (E D) SONT LA MEME CHOSE ET DEVRAIENT SAUTER
-        # => MODIF FAITE
-        #######################
         "Tests if interactome.int_list is well initialized"
         self.assertEquals(self.interactome.int_list, [('A', 'B'), ('A', 'C'), ('B', 'C'), ('B', 'D'), ('D', 'E'), ('D', 'F'), ('G', 'A'), ('G', 'C'), ('G', 'B')])
 
@@ -63,10 +59,6 @@ class TestObject(TestCase):
         self.assertTrue(isinstance(self.interactome.int_dict, dict))
 
     def test_object_int_dict_property(self):
-        #######################
-        # ATTENTION TEST FAUX, (D E) ET (E D) SONT LA MEME CHOSE ET DEVRAIENT SAUTER
-        # => MODIF FAITE
-        #######################
         "Tests if interactome.int_dict is well initialized"
         self.assertEquals(self.interactome.int_dict, {'A': ['B', 'C'], 'B': ['C', 'D'], 'D': ['E', 'F'], 'G': ['A', 'C', 'B']})
 
@@ -165,8 +157,6 @@ class TestMethods(TestCase):
         "Tests a file with a single interaction"
         self.assertTrue(is_interaction_file("test_files/test_04.txt"))
         
-    # NEW ADDITIONS STARTING HERE => A TESTER
-        
     def test_file_separator(self):
         "Tests a file with a semicolon as separator"
         self.assertTrue(is_interaction_file("test_files/test_06.txt"))
@@ -182,7 +172,6 @@ class TestMethods(TestCase):
         self.assertFalse(is_interaction_file("test_files/test_08.txt"))
         
     # TEST METHOD count_vertices
-    
     def test_count_vertices(self):
         "Tests if the number of vertices of a graph is well counted"
         self.assertEquals(self.interactome.count_vertices(), 7)
@@ -213,54 +202,67 @@ class TestMethods(TestCase):
         self.assertRaises(ValueError,self.interactome.get_degree,"Y")
     
     # TEST METHOD get_max_degree
-    def get_max_degree(self):
-        #######################
-        # NE FONCTIONNE PAS, NE TIENS PAS COMPTE QUE LE GRAPHE EST NON ORIENTE, il faut parcourir la liste et compter le nombre d'occurence de chaque prot
-        # => MODIF FAITE
-        #######################
+    def test_get_max_degree(self):
         "Tests if the degree max of a graph is well calculated"
         self.assertEquals(self.interactome.get_max_degree(), (4, ['B']))
     
     # TEST METHOD get_ave_degree
-    def get_ave_degree(self):
-        #######################
-        # NE FONCTIONNE PAS, NE TIENS PAS COMPTE QUE LE GRAPHE EST NON ORIENTE, il faut parcourir la liste et compter le nombre d'occurence de chaque prot
-        # => MODIF FAITE, float
-        # => pas sure de la fonction equivalente en networkx ou si on repond bien à la consigne
-        #######################
+    def test_get_ave_degree(self):
         "Tests if the average degree of a graph is well calculated"
         self.assertEquals(round(self.interactome.get_ave_degree(),2), 2.57)
-    
+
     # TEST METHOD count_degree
-    def count_degree(self):
-        #######################
-        # NE FONCTIONNE PAS, NE TIENS PAS COMPTE QUE LE GRAPHE EST NON ORIENTE, il faut parcourir la liste et compter le nombre d'occurence de chaque prot
-        # => MODIF FAITE
-        #######################
+    def test_count_degree(self):
         "Tests if the number of proteins with a given degree is well calculated"
         self.assertEquals(self.interactome.count_degree(3), 4)
+
+    def test_count_degree(self):
+        "Tests if the number of proteins with a given degree is well calculated"
         self.assertEquals(self.interactome.count_degree(0), 0)
+
+    def test_count_degree(self):
+        "Tests if the number of proteins with a given degree is well calculated"
         self.assertEquals(self.interactome.count_degree(4), 1)
+
+    def test_count_degree(self):
+        "Tests if the number of proteins with a given degree is well calculated"
         self.assertEquals(self.interactome.count_degree(1), 2)
     
     # TEST METHOD histogram_degree
     # Flemme
 
     # TEST METHOD density
-    def density(self):
+    def test_density_toy(self):
         "Tests if the density of a graph is well calculated"
         self.assertEquals(round(self.interactome.density(),2), 0.43)
+
+    def test_density_interactome(self):
+        "Tests if the density of a graph is well calculated"
         self.assertEquals(round(self.interactome2.density(),2), 0.48)
-        #self.assertEquals(round(self.interactome_Human.density(),8), 0.00059248)
+
+    def test_density_human(self):
+        self.assertEquals(round(self.interactome_Human.density(),8), 0.00059248)
     
     # TEST METHOD clustering
-    def clustering(self):
+    def test_clustering_0(self):
         "Tests if the clustering coefficient of a protein is well calculated"
         self.assertEquals(round(self.interactome.clustering("A"),4), 1.0)
+    
+    def test_clustering_1(self):
+        "Tests if the clustering coefficient of a protein is well calculated"
         self.assertEquals(round(self.interactome.clustering("C"),4), 1.0)
+        
+    def test_clustering_2(self):
+        "Tests if the clustering coefficient of a protein is well calculated"
         self.assertEquals(round(self.interactome.clustering("D"),4), 0.0)
+        
+    def test_clustering_3(self):
+        "Tests if the clustering coefficient of a protein is well calculated"
         self.assertEquals(round(self.interactome2.clustering("D"),4), 0.3333)
-        #self.assertEquals(round(self.interactome_Human.clustering("1433B_HUMAN"),4), 0.0527)
+    
+    def test_clustering_human(self):
+        "Tests if the clustering coefficient of a protein is well calculated"
+        self.assertEquals(round(self.interactome_Human.clustering("1433B_HUMAN"),4), 0.0527)
     
     # TEST METHOD extract_CC
     def test_extract_CC1(self):
