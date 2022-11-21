@@ -115,7 +115,24 @@ class TestIO(TestCase):
 
 class TestMethods(TestCase):
     
-    # TEST METHOD is_interaction_file 
+    @property
+    def interactome(self):
+        """ Getter of the attribute interactome. """
+        return self.__interactome
+
+    @interactome.setter
+    def interactome(self, new_interactome):
+        """ Setter of the attribute interactome. """
+        if not isinstance(new_interactome, Interactome):
+            raise ValueError("Expecting a Interactome")
+        self.__interactome = new_interactome
+
+    def __init__(self, *args, **kwargs):
+        "Custom constructor"
+        super(TestObject, self).__init__(*args, **kwargs)
+        self.interactome = Interactome("test_files/toy_example.txt")
+        self.interactome2 = Interactome("test_files/toy_example2.txt")
+        self.interactome_Human = Interactome("test_files/Human_HighQuality.txt")
 
     def test_file_does_not_exists(self):
         "Tests when file does not exists"
@@ -177,19 +194,21 @@ class TestMethods(TestCase):
     # Flemme
     
     # TEST METHOD get_degree
-    def test_get_degree(self):
-        #######################
-        # NE FONCTIONNE PAS, NE TIENS PAS COMPTE QUE LE GRAPHE EST NON ORIENTE, il faut parcourir la liste et compter le nombre d'occurence de chaque prot
-        # => MODIF FAITE (plus RAISE ValueError ajoutée)
-        #######################
-        "Tests if the number of degrees of a protein is well counted, and returns None if the protein is not in the graph"
+    def test_get_degree_mult(self):
+        "Tests if the number of degrees of a protein is well counted"
         self.assertEquals(self.interactome.get_degree("A"), 3)
+
+    def test_get_degree_single(self):
+        "Tests if the number of degrees of a protein is well counted"
         self.assertEquals(self.interactome.get_degree("E"), 1)
+    
+    def test_get_degree_human(self):
+        "Tests if the number of degrees of a protein is well counted"
         self.assertEquals(self.interactome_Human.get_degree("1433B_HUMAN"), 49)
-        #######################
-        # COMMENT VERIFIER QUE CA RAISE UN ValueError ?
-        #######################
-        self.assertEquals(self.interactome.get_degree("Y"), ValueError())
+
+    def test_get_degree_error(self):
+        "Tests if the number of degrees of a protein which is non-exitent"
+        self.assertRaises(ValueError,self.interactome.get_degree("Y"))
     
     # TEST METHOD get_max_degree
     def get_max_degree(self):
