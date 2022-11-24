@@ -68,7 +68,7 @@ def check_interaction_file(f: Callable) -> Callable:
         if is_interaction_file(args[1]):
             return f(*args, **kwargs)
         exit()
-            
+
     return wrapper
 
 
@@ -147,7 +147,7 @@ class Interactome:
         self.__proteins = new_proteins
 
     @check_interaction_file
-    def __init__(self, file: str, fileout="clean_int_graph.txt", method='default',kwargs={}):
+    def __init__(self, file: str, fileout="clean_int_graph.txt", method='default', kwargs={}):
         """Creates a list and a dictionary from the interactome file as well as the list of ordered proteins.
 
         Parameters
@@ -159,25 +159,30 @@ class Interactome:
         """
         match method:
             case 'default':
-                self.file_in = file                                             # path to input.txt file
-                self.file_out = fileout                                         # path to output.txt file
-                self.write_clean_interactome()                                  # interactome file cleaning
-                self.int_list, self.int_dict = self.read_interaction_file()     # interactions as list and dict
-                self.int_mat, self.proteins = self.read_interaction_file_mat()  # matrix of distance and list of proteins in interactome
-                self.flat_list = list(chain(*self.int_list))                    # list of all proteins, resp. to their interactions
+                # path to input.txt file
+                self.file_in = file
+                # path to output.txt file
+                self.file_out = fileout
+                # interactome file cleaning
+                self.write_clean_interactome()
+                # interactions as list and dict
+                self.int_list, self.int_dict = self.read_interaction_file()
+                # matrix of distance and list of proteins in interactome
+                self.int_mat, self.proteins = self.read_interaction_file_mat()
+                # list of all proteins, resp. to their interactions
+                self.flat_list = list(chain(*self.int_list))
             case 'erdos-renyi':
                 self.proteins = []
                 self.__save_graph(self.erdos_renyi_graph(**kwargs))
                 self.__init__(".temp_graph.txt", method='default')
                 system("rm .temp_graph.txt")
             case 'barabasi-albert':
-                self.int_list, self.int_dict = [],{}
-                self.int_mat, self.proteins = np.ndarray([]),[]
+                self.int_list, self.int_dict = [], {}
+                self.int_mat, self.proteins = np.ndarray([]), []
                 self.flat_list = []
                 self.__save_graph(self.__barabasi_albert(**kwargs))
                 self.__init__(".temp_graph.txt", method='default')
                 system("rm .temp_graph.txt")
-
 
     def __str__(self):
         return f"Interactome object with {len(self.proteins)} nodes and {len(self.int_list)} interactions."
@@ -339,7 +344,7 @@ class Interactome:
             The number of edges linked to a specific protein if the protein exists, else raise a ValueError.
         """
         if prot in self.proteins:
-            degree = self.flat_list.count(prot) 
+            degree = self.flat_list.count(prot)
         else:
             raise ValueError("Protein does not exist")
         return degree
@@ -354,9 +359,9 @@ class Interactome:
         """
         list_degrees = [self.get_degree(prot) for prot in self.proteins]
         max_degree = max(list_degrees)
-        prot_max_degree = [self.proteins[i] for i, degree in enumerate(list_degrees) if degree == max_degree]
+        prot_max_degree = [self.proteins[i] for i, degree in enumerate(
+            list_degrees) if degree == max_degree]
         return max_degree, prot_max_degree
-
 
     def get_ave_degree(self) -> float:
         """Gives the approximate average degree
@@ -466,7 +471,7 @@ class Interactome:
         self.proteins = self.proteins + [prot_name]
         return prot_name
 
-    def __save_graph(self,graph:list) -> None:
+    def __save_graph(self, graph: list) -> None:
         """Saves a graph from a list
 
         Args:
@@ -518,11 +523,11 @@ class Interactome:
         """
         nodes = [self.__generate_protein() for _ in range(m)]
         self.int_dict[nodes[0]] = [nodes[1]]
-        self.int_list = [(nodes[0],nodes[1])]
+        self.int_list = [(nodes[0], nodes[1])]
 
         for node in nodes[2:]:
             self.int_dict[node] = []
-            connected_node:bool = False
+            connected_node: bool = False
             while not connected_node:
                 for key in self.int_dict.keys():
                     if key != node and key in list(chain(*self.int_list)):
@@ -552,17 +557,17 @@ class Interactome:
         """
         for node in [self.__generate_protein() for _ in range(m)]:
             self.int_dict[node] = []
-            connected_node:bool = False
+            connected_node: bool = False
             while not connected_node:
                 for key in self.int_dict.keys():
                     if key != node and key in list(chain(*self.int_list)):
-                        probability = (self.get_degree(key)) / (2*self.count_edges())
+                        probability = (self.get_degree(key)) / \
+                            (2*self.count_edges())
                         if choices([0, 1], weights=[1-probability, probability])[0]:
                             self.int_list.append((node, key))
                             self.int_dict[key].append(node)
                             connected_node = True
         self.int_mat, self.proteins = self.read_interaction_file_mat()
-    
 
     def extract_all_CC(self) -> dict:
         """ Extracts all the paths from a graph
@@ -578,11 +583,12 @@ class Interactome:
         while nodes_left:
             prot = nodes_left[0]
             CC_dict[i] = self.extract_CC(prot)
-            nodes_left = list(filter(lambda x : x not in CC_dict[i], nodes_left))
+            nodes_left = list(
+                filter(lambda x: x not in CC_dict[i], nodes_left))
             i += 1
         return CC_dict
-    
-    def extract_CC(self, prot : str, path=list(), i = 0) -> list:
+
+    def extract_CC(self, prot: str, path=list(), i=0) -> list:
         """Identifies all the nodes contained in the same path as the protein given in argument
 
         Parameters
@@ -597,17 +603,17 @@ class Interactome:
         -------
         list
             A list that contains the path including the protein
-        """     
+        """
         path = path+[prot]
         # i is there in case the starting node only has one edge
         if self.get_degree(prot) > 1 or i == 0:
             i = 1
             for node in self.get_neighbors(prot):
                 if node not in path:
-                    path = self.extract_CC(node,path)
+                    path = self.extract_CC(node, path)
         return path
-        
-    def get_neighbors(self, prot : str) -> list:
+
+    def get_neighbors(self, prot: str) -> list:
         """ Extracts the list of neighbors of a given protein from an interaction matrix
 
         Parameters
@@ -626,8 +632,8 @@ class Interactome:
             if prot_index_in_matrix[i] == 1:
                 list_nodes_CC.append(self.proteins[i])
         return list_nodes_CC
-        
-    def count_CC(self) -> Tuple[int, list[int,int]]:
+
+    def count_CC(self) -> Tuple[int, list[int, int]]:
         """Calculates the size of each path and the total number of paths in a graph
 
         Parameters
@@ -642,11 +648,10 @@ class Interactome:
         """
         dico = self.extract_all_CC()
         count_CC = max(dico.keys())
-        list_size_CC = [(key,len(value)) for key, value in dico.items()]        
+        list_size_CC = [(key, len(value)) for key, value in dico.items()]
         return count_CC, list_size_CC
-        
-        
-    def write_CC(self, CC_file_out = "CC_file_out") -> None:
+
+    def write_CC(self, CC_file_out="CC_file_out.txt") -> None:
         """ Writes in an output file the size and the nodes contained in each path of the graph. 
         Each line in the file shows first the size of the path and then list the nodes included in the path.
 
@@ -657,10 +662,10 @@ class Interactome:
         """
         dico = self.extract_all_CC()
         with open(CC_file_out, 'w') as handler:
-            handler.write('\n'.join([f"{str(len(value))} {value}" for value in dico.values()]))
-        
+            handler.write(
+                '\n'.join([f"{str(len(value))} {value}" for value in dico.values()]))
 
-    def compute_CC(self) -> list[int,str]:
+    def compute_CC(self) -> list[int, str]:
         """ Creates a list containing the path label associated to each proteins
 
         Returns
@@ -669,5 +674,4 @@ class Interactome:
             A list containing tuples. Each tuple contains the path's label and the name of the protein belonging to this path
         """
         dico = self.extract_all_CC()
-        return list(chain(*[[(key, i) for i in value ] for key, value in dico.items()]))
-        
+        return list(chain(*[[(key, i) for i in value] for key, value in dico.items()]))

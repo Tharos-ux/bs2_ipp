@@ -5,18 +5,20 @@ import tkinter as tk
 import matplotlib.pyplot as plt
 
 if __name__ == "__main__":
-    
+
     parser = ArgumentParser()
     parser.add_argument(
         "file", help="Path to a interactome file", type=str)
     args = parser.parse_args()
     # Initialisation d'un objet Interactome
     toy_graph: Interactome = Interactome(args.file)
-    barabasi_albert_graph: Interactome = Interactome(args.file, method='barabasi-albert',kwargs={'m':15})
-    erdos_renyi_graph: Interactome = Interactome(args.file, method='erdos-renyi',kwargs={'n':15,'q':0.3})
+    barabasi_albert_graph: Interactome = Interactome(
+        args.file, method='barabasi-albert', kwargs={'m': 15})
+    erdos_renyi_graph: Interactome = Interactome(
+        args.file, method='erdos-renyi', kwargs={'n': 15, 'q': 0.3})
 
-    for (interactome,name) in [(toy_graph,f'{args.file}'),(erdos_renyi_graph,'erdos_renyi'),(barabasi_albert_graph,'barabasi-albert')]:
-    
+    for (interactome, name) in [(toy_graph, f'{args.file}'), (erdos_renyi_graph, 'erdos_renyi'), (barabasi_albert_graph, 'barabasi-albert')]:
+
         layout: int = 400
         button_methods: list[dict] = [
             # Visualisation du graphe d'interactions coloré par degré
@@ -30,7 +32,7 @@ if __name__ == "__main__":
                 'kwargs': {'m': 20}},
             # Plot de l'histogramme du degré des protéines
             {'button_name': "Plot histogram of degrees", 'function': Interactome.histogram_degree,
-                'kwargs': {'dmin': 1,'dmax':20}},
+                'kwargs': {'dmin': 1, 'dmax': 20}},
         ]
 
         root = tk.Tk()
@@ -43,6 +45,6 @@ if __name__ == "__main__":
         button_list = [tk.Button(master=root, text=func['button_name'], bg='#2f3136', fg='white', command=partial(
             func['function'], self=interactome, **func['kwargs'])) for func in button_methods]
         [button.grid(sticky="nswe", column=0, row=i)
-        for i, button in enumerate(button_list)]
+         for i, button in enumerate(button_list)]
         #root.attributes("-topmost", True)
         root.mainloop()
