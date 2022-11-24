@@ -126,6 +126,7 @@ class TestMethods(TestCase):
         self.interactome2 = Interactome("test_files/toy_example2.txt")
         self.interactomeCC = Interactome("test_files/toy_example_CC.txt")
         self.interactome_ER = Interactome("", method="erdos-renyi", kwargs={"n":100, "q":0.3})
+        self.interactome_BA = Interactome("", method="barabasi-albert", kwargs={"m":100})
 
     def test_file_does_not_exists(self):
         "Tests when file does not exists"
@@ -155,18 +156,6 @@ class TestMethods(TestCase):
     def test_correct_file(self):
         "Tests a file with a single interaction"
         self.assertTrue(is_interaction_file("test_files/test_04.txt"))
-
-    """ 
-    def test_file_separator(self):
-        "Tests a file with a semicolon as separator"
-        self.assertTrue(is_interaction_file("test_files/test_06.txt"))
-        self.assertEqual(self.interactome.int_list, [('A', 'B'), ('A', 'C'), ('B', 'C'), ('C', 'D')])
-
-    def test_file_with_random_spaces(self):
-        "Tests a file with random spaces in file"
-        self.assertTrue(is_interaction_file("test_files/test_07.txt"))
-        self.assertEqual(self.interactome.int_list, [('A', 'B'), ('A', 'C'), ('B', 'C'), ('C', 'D')])
-    """
         
     def test_file_triple_interaction(self):
         "Tests a file with an interaction with 3 nodes instead of 2"
@@ -181,10 +170,7 @@ class TestMethods(TestCase):
     def test_count_edges(self):
         "Tests if the number of edges of a graph is well counted"
         self.assertEqual(self.interactome.count_edges(), 9)
-    
-    # TEST METHOD clean_interactome
-    # Flemme
-    
+        
     # TEST METHOD get_degree
     def test_get_degree_mult(self):
         "Tests if the number of degrees of a protein is well counted"
@@ -229,9 +215,6 @@ class TestMethods(TestCase):
         "Tests if the number of proteins with a given degree is well calculated"
         self.assertEqual(self.interactome.count_degree(1), 2)
     
-    # TEST METHOD histogram_degree
-    # Flemme
-
     # TEST METHOD density
     def test_density_toy(self):
         "Tests if the density of a graph is well calculated"
@@ -264,39 +247,35 @@ class TestMethods(TestCase):
     
     def test_extract_CC2(self):
         self.assertEqual(self.interactomeCC.extract_CC('O'), ['O', 'P', 'Q', 'R'])
-        
+
+    # TEST METHOD extract_all_CC
     def test_extract_all_CC(self):
         self.assertEqual(self.interactomeCC.extract_all_CC(), {1: ['A', 'B', 'C', 'E', 'F'], 2: ['G', 'H'], 3: ['I', 'J', 'K', 'L', 'M'], 4: ['O', 'P', 'Q', 'R'], 5: ['S', 'T'], 6: ['U', 'V', 'W']})
-
+    
+    # TEST METHOD get_neighbors
     def test_get_neighbors1(self):
         self.assertEqual(self.interactome2.get_neighbors('A'), ['B', 'C','G'])
         
     def test_get_neighbors2(self):
         self.assertEqual(self.interactome2.get_neighbors('F'), ['D','E'])
         
+    # TEST METHOD compute_CC
     def test_compute_CC(self):
         self.assertEqual(self.interactomeCC.compute_CC(), [(1, 'A'), (1, 'B'), (1, 'C'), (1, 'E'), (1, 'F'), (2, 'G'), (2, 'H'), (3, 'I'), (3, 'J'), (3, 'K'), (3, 'L'), (3, 'M'), (4, 'O'), (4, 'P'), (4, 'Q'), (4, 'R'), (5, 'S'), (5, 'T'), (6, 'U'), (6, 'V'), (6, 'W')])
     
+    # TEST METHOD count_CC
     def test_count_CC(self):
         self.assertEqual(self.interactomeCC.count_CC(), (6, [(1, 5), (2, 2), (3, 5), (4, 4), (5, 2), (6, 3)]))
-        
               
     # TEST METHOD erdos_renyi_graph
-    # count number of nodes and edges
-    '''Afin de vérifier votre méthode, construisez un graphe aléatoire de paramètre p = 0.3
-    et calculez ensuite la distribution des degrés des sommets. Pour ce faire, vous devriez
-    vous servir de méthodes implémentées au chapitre 2
-    '''
     def test_erdos_renyi_graph(self):
-        distribution = self.interactome_ER.get_ave_degree()        
-        self.assertEqual(round(distribution,1), 3.3)
+        distribution = self.interactome_ER.get_ave_degree()
+        self.assertTrue(27 <round(distribution)< 33)
         
     # TEST METHOD barabasi_albert_graph
-    
-    '''
-    def test_write_CC():
-        pass   
-    '''
+    def test_barabasi_albert_graph(self):
+        distribution = self.interactome_BA.get_ave_degree()
+        self.assertTrue(1.8 <round(distribution)< 2.2)
         
 
 if __name__ == "__main__":

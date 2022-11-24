@@ -178,6 +178,7 @@ class Interactome:
                 self.__init__(".temp_graph.txt", method='default')
                 system("rm .temp_graph.txt")
 
+
     def __str__(self):
         return f"Interactome object with {len(self.proteins)} nodes and {len(self.int_list)} interactions."
 
@@ -555,8 +556,7 @@ class Interactome:
             while not connected_node:
                 for key in self.int_dict.keys():
                     if key != node and key in list(chain(*self.int_list)):
-                        probability = (self.get_degree(key)+1) / \
-                            (2*self.count_edges() + self.count_vertices())
+                        probability = (self.get_degree(key)) / (2*self.count_edges())
                         if choices([0, 1], weights=[1-probability, probability])[0]:
                             self.int_list.append((node, key))
                             self.int_dict[key].append(node)
