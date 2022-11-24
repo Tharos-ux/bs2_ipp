@@ -588,7 +588,7 @@ class Interactome:
             i += 1
         return CC_dict
 
-    def extract_CC(self, prot: str, path=list(), i=0) -> list:
+    def extract_CC(self, prot: str, path: list = list()) -> list:
         """Identifies all the nodes contained in the same path as the protein given in argument
 
         Parameters
@@ -596,18 +596,14 @@ class Interactome:
         prot : str
             The protein
         path :
-            A list that will contain the path including the protein
-        i : 
-            An integer initialised at 0        
+            A list that will contain the path including the protein  
         Returns
         -------
         list
             A list that contains the path including the protein
         """
         path = path+[prot]
-        # i is there in case the starting node only has one edge
-        if self.get_degree(prot) > 1 or i == 0:
-            i = 1
+        if self.get_degree(prot) >= 1:
             for node in self.get_neighbors(prot):
                 if node not in path:
                     path = self.extract_CC(node, path)
