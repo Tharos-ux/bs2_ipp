@@ -67,41 +67,16 @@ def check_interaction_file(f: Callable) -> Callable:
         Returns:
             Object: the object returned by the Callable
         """
+        if 'method' in kwargs:
+            if kwargs['method'] != 'default':
+                return f(*args, **kwargs)
         if is_interaction_file(args[1]):
-            return f(*args, **kwargs)
+                return f(*args, **kwargs)
+            
     return wrapper
 
 
 class Interactome:
-
-    @check_interaction_file
-    def __init__(self, file: str, fileout="clean_int_graph.txt", method='default',kwargs={}):
-        """Creates a list and a dictionary from the interactome file as well as the list of ordered proteins.
-
-        Parameters
-        ----------
-        file : str
-            A path to an interactome file in txt format
-        fileout : str, optional
-            Output path for a cleaned interactome txt file
-        """
-        match method:
-            case 'default':
-                self.file_in = file
-                self.file_out = fileout
-                self.write_clean_interactome()
-                self.int_list, self.int_dict = self.read_interaction_file()
-                self.int_mat, self.proteins = self.read_interaction_file_mat()
-                self.flat_list = list(chain(*self.int_list))
-            case 'erdos-renyi':
-                self.save_erdos_renyi_graph(self.erdos_renyi_graph(**kwargs))
-                self.__init__("erdos_renyi.txt", method='default')
-                system("rm erdos_renyi.txt")
-            case 'barabasi-albert':
-                self.int_list, self.int_dict = [],{}
-                self.int_mat, self.proteins = np.ndarray([]),[]
-                self.flat_list = []
-                self.barabasi_albert_graph(**kwargs)
 
     @property
     def file_in(self):
@@ -174,6 +149,36 @@ class Interactome:
         if not isinstance(new_proteins, list):
             raise ValueError("Expecting a list")
         self.__proteins = new_proteins
+
+    @check_interaction_file
+    def __init__(self, file: str, fileout="clean_int_graph.txt", method='default',kwargs={}):
+        """Creates a list and a dictionary from the interactome file as well as the list of ordered proteins.
+
+        Parameters
+        ----------
+        file : str
+            A path to an interactome file in txt format
+        fileout : str, optional
+            Output path for a cleaned interactome txt file
+        """
+        match method:
+            case 'default':
+                self.file_in = file
+                self.file_out = fileout
+                self.write_clean_interactome()
+                self.int_list, self.int_dict = self.read_interaction_file()
+                self.int_mat, self.proteins = self.read_interaction_file_mat()
+                self.flat_list = list(chain(*self.int_list))
+            case 'erdos-renyi':
+                self.proteins = []
+                self.save_erdos_renyi_graph(self.erdos_renyi_graph(**kwargs))
+                self.__init__("erdos_renyi.txt", method='default')
+                system("rm erdos_renyi.txt")
+            case 'barabasi-albert':
+                self.int_list, self.int_dict = [],{}
+                self.int_mat, self.proteins = np.ndarray([]),[]
+                self.flat_list = []
+                self.barabasi_albert_graph(**kwargs)
 
     def __str__(self):
         return f"Interactome object with {len(self.proteins)} nodes and {len(self.int_list)} interactions."
@@ -496,7 +501,7 @@ class Interactome:
         List
             the erdos renyi graph
         """
-        nodes = [str(i) for i in range(1, n+1)]
+        nodes = [self.__generate_protein() for i in range(1, n+1)]
         list_all_edges = list((combinations(nodes, 2)))
         proba_array = [choices([0, 1], weights=[1-q, q])[0]
                        for _ in range(len(list_all_edges))]
