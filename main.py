@@ -12,10 +12,10 @@ if __name__ == "__main__":
     args = parser.parse_args()
     # Initialisation d'un objet Interactome
     toy_graph: Interactome = Interactome(args.file)
-    barabasi_albert_graph: Interactome = Interactome(args.file, method='barabasi-albert',kwargs={'m':100})
-    erdos_renyi_graph: Interactome = Interactome(args.file, method='erdos-renyi',kwargs={'n':100,'q':0.3})
+    barabasi_albert_graph: Interactome = Interactome(args.file, method='barabasi-albert',kwargs={'m':15})
+    erdos_renyi_graph: Interactome = Interactome(args.file, method='erdos-renyi',kwargs={'n':15,'q':0.3})
 
-    for (interactome,name) in [(toy_graph,f'{args.file}'),(barabasi_albert_graph,'barabasi-albert'),(erdos_renyi_graph,'erdos_renyi')]:
+    for (interactome,name) in [(toy_graph,f'{args.file}'),(erdos_renyi_graph,'erdos_renyi'),(barabasi_albert_graph,'barabasi-albert')]:
     
         layout: int = 400
         button_methods: list[dict] = [
@@ -28,6 +28,9 @@ if __name__ == "__main__":
             # Ajout de 20 protéines selon la méthode de Barabasi-Albert
             {'button_name': "Add 20 nodes (Barabasi-Albert)", 'function': Interactome.barabasi_albert_graph,
                 'kwargs': {'m': 20}},
+            # Plot de l'histogramme du degré des protéines
+            {'button_name': "Plot histogram of degrees", 'function': Interactome.histogram_degree,
+                'kwargs': {'dmin': 1,'dmax':20}},
         ]
 
         root = tk.Tk()
@@ -41,13 +44,5 @@ if __name__ == "__main__":
             func['function'], self=interactome, **func['kwargs'])) for func in button_methods]
         [button.grid(sticky="nswe", column=0, row=i)
         for i, button in enumerate(button_list)]
-        root.attributes("-topmost", True)
+        #root.attributes("-topmost", True)
         root.mainloop()
-
-    # Affichage de différentes propriétés de l'objet Interactome
-    # print(toy_graph.int_list)
-    # print(toy_graph.int_mat)
-
-    # Affichage de différentes propriétés après modification
-    # print(toy_graph.int_dict)
-    # print(toy_graph.int_mat)

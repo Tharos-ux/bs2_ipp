@@ -11,11 +11,6 @@ from os import path, system
 
 
 def is_interaction_file(filename: str) -> bool:
-    ############
-    #ATTENTION, NE CAPTURE PAS L'ERREUR SI LE NOMBRE D'INTERACTION EN DEBUT DE FICHIER EST MAUVAIS.
-    # CHERCHE A INIT self.__proteins qui n'existe pas :
-    # AttributeError: 'Interactome' object has no attribute '_Interactome__proteins'. Did you mean: '_Interactome__neighbors'?
-    ############
     """Checks if file is correct
 
     Raises:
@@ -40,14 +35,14 @@ def is_interaction_file(filename: str) -> bool:
                 raise AssertionError
         status = True
     except AssertionError:
-        raise AssertionError(
-            f"File {filename} has incorrect number of lines. Described : {i}, awaited {first_line}")
+        print(AssertionError(
+            f"File {filename} has incorrect number of lines. Described : {i}, awaited {first_line}"))
     except TypeError:
-        raise TypeError(f"File {filename} has incorrect first line.")
+        print(TypeError(f"File {filename} has incorrect first line."))
     except ValueError:
-        raise ValueError(f"File contains error on line {i}.")
+        print(ValueError(f"File contains error on line {i}."))
     except FileNotFoundError:
-        raise FileNotFoundError(f"File {filename} does not exists.")
+        print(FileNotFoundError(f"File {filename} does not exists."))
     finally:
         return status
 
@@ -71,7 +66,8 @@ def check_interaction_file(f: Callable) -> Callable:
             if kwargs['method'] != 'default':
                 return f(*args, **kwargs)
         if is_interaction_file(args[1]):
-                return f(*args, **kwargs)
+            return f(*args, **kwargs)
+        exit()
             
     return wrapper
 
@@ -156,29 +152,31 @@ class Interactome:
 
         Parameters
         ----------
-        file : str
-            A path to an interactome file in txt format
-        fileout : str, optional
-            Output path for a cleaned interactome txt file
+            file (str): A path to an interactome file in txt format
+            fileout (str, optional) : Output path for a cleaned interactome txt file
+            method (str, optional): Alternative methods to generate graphs. Defaults to 'default'.
+            kwargs (dict, optional): Additionnal arguments for alternative methods. Defaults to {}.
         """
         match method:
             case 'default':
-                self.file_in = file
-                self.file_out = fileout
-                self.write_clean_interactome()
-                self.int_list, self.int_dict = self.read_interaction_file()
-                self.int_mat, self.proteins = self.read_interaction_file_mat()
-                self.flat_list = list(chain(*self.int_list))
+                self.file_in = file                                             # path to input.txt file
+                self.file_out = fileout                                         # path to output.txt file
+                self.write_clean_interactome()                                  # interactome file cleaning
+                self.int_list, self.int_dict = self.read_interaction_file()     # interactions as list and dict
+                self.int_mat, self.proteins = self.read_interaction_file_mat()  # matrix of distance and list of proteins in interactome
+                self.flat_list = list(chain(*self.int_list))                    # list of all proteins, resp. to their interactions
             case 'erdos-renyi':
                 self.proteins = []
-                self.save_erdos_renyi_graph(self.erdos_renyi_graph(**kwargs))
-                self.__init__("erdos_renyi.txt", method='default')
-                system("rm erdos_renyi.txt")
+                self.__save_graph(self.erdos_renyi_graph(**kwargs))
+                self.__init__(".temp_graph.txt", method='default')
+                system("rm .temp_graph.txt")
             case 'barabasi-albert':
                 self.int_list, self.int_dict = [],{}
                 self.int_mat, self.proteins = np.ndarray([]),[]
                 self.flat_list = []
-                self.barabasi_albert_graph(**kwargs)
+                self.__save_graph(self.__barabasi_albert(**kwargs))
+                self.__init__(".temp_graph.txt", method='default')
+                system("rm .temp_graph.txt")
 
     def __str__(self):
         return f"Interactome object with {len(self.proteins)} nodes and {len(self.int_list)} interactions."
@@ -214,7 +212,7 @@ class Interactome:
             "linewidths": 1,
             "width": 1,
         }
-        # "node_color": "white",
+
         nx.draw_networkx(graph, None, **options)
 
         ax = plt.gca()
@@ -241,7 +239,6 @@ class Interactome:
             next(f)
             for line in f:
                 line_interaction = line.split()
-                # TODO fix cette fonction
                 if line_interaction[::-1] not in list_interactions and line_interaction[0] != line_interaction[1] and line_interaction not in list_interactions:
                     list_interactions.append(line_interaction)
         return list_interactions, len(list_interactions)
@@ -342,12 +339,9 @@ class Interactome:
         """
         if prot in self.proteins:
             degree = self.flat_list.count(prot) 
-            # degree = sum(self.int_mat[self.proteins.index(prot)])
         else:
             raise ValueError("Protein does not exist")
         return degree
-        
-        # return len(self.int_dict[prot]) if prot in self.int_dict else 0
 
     def get_max_degree(self) -> Tuple[int, list]:
         """Gets the protein with the highest number of interactions and the number of interactions associated.
@@ -362,13 +356,6 @@ class Interactome:
         prot_max_degree = [self.proteins[i] for i, degree in enumerate(list_degrees) if degree == max_degree]
         return max_degree, prot_max_degree
 
-        #max_interactions = 0
-        #for key, value in self.int_dict.items():
-        #    len_val = len(value)
-        #    if len_val > max_interactions:
-        #        max_interactions = len_val
-        #        return key, len_val
-
 
     def get_ave_degree(self) -> float:
         """Gives the approximate average degree
@@ -379,8 +366,6 @@ class Interactome:
             The average degree of PPI interactions
         """
         return mean([self.get_degree(prot) for prot in self.proteins])
-        #return int(mean(list({key: len(value)
-        #                      for key, value in self.int_dict.items()}.values())))
 
     def count_degree(self, deg: int) -> int:
         """Counts the number of proteins with a given degree deg
@@ -397,7 +382,6 @@ class Interactome:
         """
         list_degrees = [self.get_degree(prot) for prot in self.proteins]
         return len([self.proteins[i] for i, degree in enumerate(list_degrees) if degree == deg])
-        # return len([k for k, v in {key: len(value) for key, value in self.int_dict.items()}.items() if v == deg])
 
     def __output_histogram(self, data: Counter) -> None:
         """Plots histogram from counter
@@ -408,7 +392,9 @@ class Interactome:
             Number of number of edges to a node
         """
         plt.bar(data.keys(), data.values())
-        plt.savefig(f"{self.file.split('.')[0]}.png")
+        plt.xticks(np.arange(min(data.values()), max(data.values())+1, 1))
+        plt.show()
+        plt.savefig("degree_histogram.png")
 
     def histogram_degree(self, dmin: int, dmax: int) -> None:
         """Filters some proteins by degree within range
@@ -428,7 +414,14 @@ class Interactome:
         return [a if b == prot else b for (a, b) in self.int_list if a == prot or b == prot]
 
     def __clique(self, prot: str) -> int:
-        # get neighbors of prot
+        """Get neighbors of prot
+
+        Args:
+            prot (str): protein to check
+
+        Returns:
+            int: clique
+        """
         number_neighbors: int = len(self.__neighbors(prot))
         return ((number_neighbors - 1) * number_neighbors)/2
 
@@ -443,9 +436,6 @@ class Interactome:
         return (2*self.count_edges())/(self.count_vertices()*(self.count_vertices()-1))
 
     def clustering(self, prot: str) -> float:
-        #########
-        #FONCTIONNE MAIS A OPTIMISER (très long avec de gros graphes)
-        #########
         """Computes the clustering coefficient of a node in a graph
 
         Parameters
@@ -475,13 +465,13 @@ class Interactome:
         self.proteins = self.proteins + [prot_name]
         return prot_name
 
-    def save_erdos_renyi_graph(self,graph:list) -> None:
-        """Saves an erdos-renyi graph
+    def __save_graph(self,graph:list) -> None:
+        """Saves a graph from a list
 
         Args:
             graph (list): _description_
         """
-        with open("erdos_renyi.txt", 'w') as handler:
+        with open(".temp_graph.txt", 'w') as handler:
             handler.write('\n'.join(
                 [str(len(graph))]+[f"{key} {value}" for (key, value) in graph]))
 
@@ -510,6 +500,40 @@ class Interactome:
             list_all_edges) if proba_array[i]]
         return graph
 
+    def __barabasi_albert(self, m: int) -> None:
+        """Creates a random graph according to the Barabasi Albert model, starting from a empty graph.
+
+        Parameters
+        ----------
+        graph : dict
+            The original graph
+        m : int
+            The number of nodes to add, following the Barabasi-Albert algorithm
+
+        Returns
+        -------
+        list[Tuple[str, str]]
+            The new graph containing all the new nodes, linked to the original nodes according to the Barabasi algorithm
+        """
+        nodes = [self.__generate_protein() for _ in range(m)]
+        self.int_dict[nodes[0]] = [nodes[1]]
+        self.int_list = [(nodes[0],nodes[1])]
+
+        for node in nodes[2:]:
+            self.int_dict[node] = []
+            connected_node:bool = False
+            while not connected_node:
+                for key in self.int_dict.keys():
+                    if key != node and key in list(chain(*self.int_list)):
+                        #probability = self.get_degree(key) / (2*self.count_edges())
+                        probability = (self.get_degree(key)+1) / \
+                            (2*self.count_edges() + self.count_vertices())
+                        if choices([0, 1], weights=[1-probability, probability])[0] or self.int_list == []:
+                            self.int_list.append((node, key))
+                            self.int_dict[key].append(node)
+                            connected_node = True
+        return self.int_list
+
     def barabasi_albert_graph(self, m: int) -> None:
         """Creates a random graph according to the Barabasi Albert model, starting from a random graph generated by the Erdos Renyi algorithm.
 
@@ -527,15 +551,16 @@ class Interactome:
         """
         for node in [self.__generate_protein() for _ in range(m)]:
             self.int_dict[node] = []
-            for key in self.int_dict.keys():
-                probability = (self.get_degree(key)+1) / \
-                    (2*self.count_edges() + self.count_vertices())
-                if choices([0, 1], weights=[1-probability, probability])[0] or self.int_list == []:
-                    if self.int_list == []:
-                        self.int_list = [(node,key)]
-                    else:
-                        self.int_list.append((node, key))
-                    self.int_dict[key].append(node)
+            connected_node:bool = False
+            while not connected_node:
+                for key in self.int_dict.keys():
+                    if key != node and key in list(chain(*self.int_list)):
+                        probability = (self.get_degree(key)+1) / \
+                            (2*self.count_edges() + self.count_vertices())
+                        if choices([0, 1], weights=[1-probability, probability])[0]:
+                            self.int_list.append((node, key))
+                            self.int_dict[key].append(node)
+                            connected_node = True
         self.int_mat, self.proteins = self.read_interaction_file_mat()
     
 
@@ -636,9 +661,6 @@ class Interactome:
         
 
     def compute_CC(self) -> list[int,str]:
-        ##########
-        # JE NE COMPREND PAS A QUOI SERT CETTE FONCTION
-        ##########
         """ Creates a list containing the path label associated to each proteins
 
         Returns
