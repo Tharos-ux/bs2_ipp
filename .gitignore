@@ -1,4 +1,5 @@
 __pycache__/
-decorateur.py
-io.py
 clean_int_graph.txt
+temp_graph.txt
+CC_file_out
+*.png

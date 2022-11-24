@@ -1,13 +1,9 @@
 # BS2 - Moana Aulagner, Siegfried Dubois
 
-<p align="center">
-  <img src="https://github.com/Tharos-ux/bs2_ipp/blob/main/toy_example.png" width="80%" />
-  <br>
-  <legend>Toy example</legend>
-</p>
+This python3.10 project aims to visualize and explore interactome graphs.
 
 <p align="center">
-  <img src="https://github.com/Tharos-ux/bs2_ipp/blob/main/human_interactome.png" width="80%" />
+  <img src="https://github.com/Tharos-ux/bs2_ipp/blob/main/img/graph_01.png" width="80%" />
   <br>
-  <legend>Portion of human interactome</legend>
+  <legend>Toy example</legend>
 </p>
