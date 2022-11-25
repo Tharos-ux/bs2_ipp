@@ -32,7 +32,7 @@ if __name__ == "__main__":
                 'kwargs': {'m': 20}},
             # Plot de l'histogramme du degré des protéines
             {'button_name': "Plot histogram of degrees", 'function': Interactome.histogram_degree,
-                'kwargs': {'dmin': 1, 'dmax': 20}},
+                'kwargs': {'dmin': 0, 'dmax': 20}},
         ]
 
         root = tk.Tk()

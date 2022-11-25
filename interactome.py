@@ -398,7 +398,7 @@ class Interactome:
             Number of number of edges to a node
         """
         plt.bar(data.keys(), data.values())
-        plt.xticks(np.arange(min(data.values()), max(data.values())+1, 1))
+        plt.xticks(np.arange(1, max(data.values())+1, 1))
         plt.show()
         plt.savefig("degree_histogram.png")
 
@@ -413,8 +413,7 @@ class Interactome:
             upper boundary
 
         """
-        self.__output_histogram(Counter(deg for deg in [len(
-            value) for value in self.int_dict.values()] if deg >= dmin and deg <= dmax))
+        self.__output_histogram(Counter(self.get_degree(p) for p in self.proteins if self.get_degree(p) >= dmin and self.get_degree(p) <= dmax))
 
     def __neighbors(self, prot: str) -> list:
         return [a if b == prot else b for (a, b) in self.int_list if a == prot or b == prot]
