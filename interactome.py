@@ -529,14 +529,16 @@ class Interactome:
             self.int_dict[node] = []
             connected_node: bool = False
             while not connected_node:
-                for key in self.int_dict.keys():
-                    if key != node and key in list(chain(*self.int_list)):
-                        #probability = self.get_degree(key) / (2*self.count_edges())
+                for key in set(list(chain(*self.int_list))):
+                    if key != node:
                         probability = (self.get_degree(key)+1) / \
                             (2*self.count_edges() + self.count_vertices())
                         if choices([0, 1], weights=[1-probability, probability])[0] or self.int_list == []:
                             self.int_list.append((node, key))
-                            self.int_dict[key].append(node)
+                            if key in self.int_dict.keys():
+                                self.int_dict[key].append(node)
+                            else:
+                                self.int_dict[key] = [node]
                             connected_node = True
         return self.int_list
 
@@ -559,13 +561,16 @@ class Interactome:
             self.int_dict[node] = []
             connected_node: bool = False
             while not connected_node:
-                for key in self.int_dict.keys():
-                    if key != node and key in list(chain(*self.int_list)):
+                for key in set(list(chain(*self.int_list))):
+                    if key != node:
                         probability = (self.get_degree(key)) / \
                             (2*self.count_edges())
                         if choices([0, 1], weights=[1-probability, probability])[0]:
                             self.int_list.append((node, key))
-                            self.int_dict[key].append(node)
+                            if key in self.int_dict.keys():
+                                self.int_dict[key].append(node)
+                            else:
+                                self.int_dict[key] = [node]
                             connected_node = True
         self.int_mat, self.proteins = self.read_interaction_file_mat()
 
