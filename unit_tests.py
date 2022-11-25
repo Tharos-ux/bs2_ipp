@@ -128,6 +128,7 @@ class TestMethods(TestCase):
         self.interactome = Interactome("test_files/toy_example.txt")
         self.interactome2 = Interactome("test_files/toy_example2.txt")
         self.interactomeCC = Interactome("test_files/toy_example_CC.txt")
+        self.interactomeCC2 = Interactome("test_files/toy_example_CC2.txt")
         self.interactome_ER = Interactome(
             "", method="erdos-renyi", kwargs={"n": 100, "q": 0.3})
         self.interactome_BA = Interactome(
@@ -254,8 +255,12 @@ class TestMethods(TestCase):
     def test_extract_CC2(self):
         self.assertEqual(self.interactomeCC.extract_CC('O'),
                          ['O', 'P', 'Q', 'R'])
+        
+    def test_extract_CC3(self):
+        self.assertEqual(self.interactomeCC2.extract_CC('Z'),
+                         ['Z','A', 'B', 'C', 'E', 'F'])
 
-    # TEST METHOD extract_all_CC
+    #>>>>>>>>>>>>>>>>>>>>>>>>>>>> TEST METHOD extract_all_CC
     def test_extract_all_CC(self):
         self.assertEqual(self.interactomeCC.extract_all_CC(), {1: ['A', 'B', 'C', 'E', 'F'], 2: ['G', 'H'], 3: [
                          'I', 'J', 'K', 'L', 'M'], 4: ['O', 'P', 'Q', 'R'], 5: ['S', 'T'], 6: ['U', 'V', 'W']})
@@ -277,7 +282,7 @@ class TestMethods(TestCase):
         self.assertEqual(self.interactomeCC.count_CC(),
                          (6, [(1, 5), (2, 2), (3, 5), (4, 4), (5, 2), (6, 3)]))
 
-    # TEST METHOD erdos_renyi_graph
+    # >>>>>>>>>>>>>>>>>>>>>>>>>>>> TEST METHOD erdos_renyi_graph
     def test_erdos_renyi_graph(self):
         distribution = self.interactome_ER.get_ave_degree()
         self.assertTrue(27 < round(distribution) < 33)
